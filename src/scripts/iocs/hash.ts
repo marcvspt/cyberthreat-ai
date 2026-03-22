@@ -1,6 +1,9 @@
 const API_VT_FILEHASH = "https://www.virustotal.com/api/v3/files"
 const API_POLYSWARM = "https://api.polyswarm.network/v3/search/hash"
 
+const VIRUSTOTAL_API_KEY = import.meta.env.VIRUSTOTAL_API_KEY
+const POLYSWARM_API_KEY = import.meta.env.POLYSWARM_API_KEY
+
 const VALID_HASH_TYPES = {
     MD5: "md5",
     SHA1: "sha1",
@@ -22,16 +25,15 @@ function checkHashType(hash: string) {
 
 
 export async function analyzeHash(hash: string) {
-    const virustotalKey = import.meta.env.VIRUSTOTAL_API_KEY
-    const polyswarmKey = import.meta.env.POLYSWARM_API_KEY
     const hashType = checkHashType(hash)
+    const ioc = hash.trim().toLowerCase()
 
     const [virustotalResponse, polyswarmResponse] = await Promise.all([
-        fetch(`${API_VT_FILEHASH}/${hash}`, {
-            headers: { "x-apikey": virustotalKey }
+        fetch(`${API_VT_FILEHASH}/${ioc}`, {
+            headers: { "x-apikey": VIRUSTOTAL_API_KEY }
         }),
-        fetch(`${API_POLYSWARM}/${hashType}?hash=${hash}`, {
-            headers: { "Authorization": polyswarmKey }
+        fetch(`${API_POLYSWARM}/${hashType}?hash=${ioc}`, {
+            headers: { "Authorization": POLYSWARM_API_KEY }
         })
     ])
 
@@ -43,6 +45,7 @@ export async function analyzeHash(hash: string) {
     }
 
     return {
+        ioc: ioc,
         type: "hash",
         source1: {
             name: "VirusTotal",
