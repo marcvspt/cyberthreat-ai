@@ -1,17 +1,18 @@
 ---
+import LayoutBase from "@/layouts/LayoutBase.astro";
 
+import App from "@/components/App.tsx";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<LayoutBase title="Inicio">
+	<main class="py-8">
+		<h1 class="text-center text-wrap text-3xl text-secondary font-semibold">
+			¡Comienza tu <span class="text-primary font-bold"
+				>investigación de indicadores</span
+			> de compromiso y de ataque a través de <span
+				class="text-primary font-bold">modelos LLM</span
+			>!
+		</h1>
+		<App client:visible />
+	</main>
+</LayoutBase>

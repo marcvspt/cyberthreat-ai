@@ -1,5 +1,5 @@
 {
-  "name": "cubepath-hackathon-midudev",
+  "name": "cyberthreat-ai",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -12,6 +12,10 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.0.8"
+    "@astrojs/preact": "5.0.2",
+    "@tailwindcss/vite": "4.2.2",
+    "astro": "6.0.8",
+    "preact": "10.29.0",
+    "tailwindcss": "4.2.2"
   }
 }

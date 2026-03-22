@@ -1,0 +1,61 @@
+---
+import { SITE_DATA, SOCIAL_DATA, currentYear } from "@/scripts/data.js";
+
+import LinkedInIcon from "@/assets/linkedin.svg";
+import GitHubIcon from "@/assets/github.svg";
+import HackTheBoxIcon from "@/assets/hackthebox.svg";
+import MailIcon from "@/assets/email.svg";
+import XIcon from "@/assets/x.svg";
+---
+
+<footer
+    class="flex flex-col justify-center items-center border-t border-slate-800 mb-4"
+>
+    <!-- Logo y descripción -->
+    <article class="flex flex-row items-center mt-6">
+        <div>
+            <h2 class="text-xl font-bold text-wrap">
+                Hackathon Midudev - CubePath
+            </h2>
+            <p class="text-balance">
+                {SITE_DATA.description}
+            </p>
+        </div>
+        <div class="min-w-50">
+            <h2 class="text-xl font-bold text-wrap">Powered by</h2>
+            <ul>
+                <li>Framework - Astro</li>
+                <li>Hosting/Deploy - Cubepath</li>
+                <li>AI API - OpenRouter</li>
+            </ul>
+        </div>
+    </article>
+
+    <div class="flex gap-5 items-center justify-center m-6">
+        {
+            SOCIAL_DATA.map((social) => {
+                return (
+                    <a
+                        id={`link-${social.name}`}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={social.name}
+                        class="hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        {social.name === "LinkedIn" && <LinkedInIcon />}
+                        {social.name === "GitHub" && <GitHubIcon />}
+                        {social.name === "HackTheBox" && <HackTheBoxIcon />}
+                        {social.name === "X/Twitter" && <XIcon />}
+                        {social.name === "Contactame" && <MailIcon />}
+                    </a>
+                );
+            })
+        }
+    </div>
+
+    <div class="text-center prose-invert">
+        © {currentYear} Todos los derechos reservados. Hecho con ❤️ usando Astro y
+        Tailwind CSS.
+    </div>
+</footer>

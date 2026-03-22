@@ -1,0 +1,21 @@
+---
+import { SITE_DATA } from "@/scripts/data.js";
+
+import GitHubIcon from "@/assets/github.svg";
+---
+
+<header>
+    <nav class="flex flex-row justify-center items-center gap-4 mt-4">
+        <h2 class="text-xl">
+            {SITE_DATA.name}
+        </h2>
+        <a
+            href={SITE_DATA.repository}
+            class="rounded-md p-2 hover:bg-secondary/30 transition-colors duration-300"
+        >
+            <span class="flex justify-center items-center gap-2">
+                <GitHubIcon />Repo</span
+            >
+        </a>
+    </nav>
+</header>
