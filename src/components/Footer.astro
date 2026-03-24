@@ -6,56 +6,189 @@ import GitHubIcon from "@/assets/github.svg";
 import HackTheBoxIcon from "@/assets/hackthebox.svg";
 import MailIcon from "@/assets/email.svg";
 import XIcon from "@/assets/x.svg";
+
+import AstroIcon from "@/assets/astro.svg";
+import TailwindIcon from "@/assets/tailwind.svg";
+import PreactIcon from "@/assets/preact.svg";
+import OpenRouterIcon from "@/assets/openrouter.svg";
+import VirusTotalIcon from "@/assets/virustotal.svg";
+import LinkIcon from "@/assets/link.svg";
 ---
 
 <footer
-    class="flex flex-col justify-center items-center border-t border-slate-800 mb-4"
+    class="flex flex-col justify-center items-center border-t border-slate-800 mb-4 max-w-4xl mx-auto"
 >
     <!-- Logo y descripción -->
-    <article class="flex flex-row items-center mt-6">
-        <div>
+    <article
+        class="my-6 grid w-full grid-cols-1 gap-8 justify-items-center md:grid-cols-[1fr_auto] md:items-start"
+    >
+        <div class="flex flex-col items-center text-center">
             <h2 class="text-xl font-bold text-wrap">
-                Hackathon Midudev - CubePath
+                Hackaton Midudev - CubePath
             </h2>
-            <p class="text-balance">
+            <p class="text-balance mt-4 max-w-xl">
                 {SITE_DATA.description}
             </p>
+
+            <div class="flex gap-5 items-center justify-center mt-2">
+                {
+                    SOCIAL_DATA.map((social) => {
+                        return (
+                            <a
+                                id={`link-${social.name}`}
+                                href={social.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={social.name}
+                                class="hover:text-secondary/90 transition duration-100 ease-in-out"
+                            >
+                                {social.name === "LinkedIn" && <LinkedInIcon />}
+                                {social.name === "GitHub" && <GitHubIcon />}
+                                {social.name === "HackTheBox" && (
+                                    <HackTheBoxIcon />
+                                )}
+                                {social.name === "X/Twitter" && <XIcon />}
+                                {social.name === "Contactame" && <MailIcon />}
+                            </a>
+                        );
+                    })
+                }
+            </div>
         </div>
-        <div class="min-w-50">
-            <h2 class="text-xl font-bold text-wrap">Powered by</h2>
-            <ul>
-                <li>Framework - Astro</li>
-                <li>Hosting/Deploy - Cubepath</li>
-                <li>AI API - OpenRouter</li>
+        <div class="w-full md:min-w-100">
+            <h2 class="text-xl font-bold text-center">Powered by</h2>
+            <ul class="powered-grid mt-4">
+                <li class="justify-self-center">
+                    <a
+                        href="https://cubepath.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        <LinkIcon />
+                        <span>Cubepath</span>
+                    </a>
+                </li>
+                <li class="justify-self-center">
+                    <a
+                        href="https://astro.build"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        <AstroIcon />
+                        <span>Astro v6</span>
+                    </a>
+                </li>
+                <li class="justify-self-center">
+                    <a
+                        href="https://preactjs.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        <PreactIcon />
+                        <span>Preact</span>
+                    </a>
+                </li>
+                <li class="justify-self-center">
+                    <a
+                        href="https://tailwindcss.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        <TailwindIcon />
+                        <span>Tailwind CSS</span>
+                    </a>
+                </li>
+                <li class="justify-self-center">
+                    <a
+                        href="https://openrouter.ai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        <OpenRouterIcon />
+                        <span>OpenRouter</span>
+                    </a>
+                </li>
+                <li class="justify-self-center">
+                    <a
+                        href="https://www.virustotal.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        <VirusTotalIcon />
+                        <span>VirusTotal</span>
+                    </a>
+                </li>
+                <li class="justify-self-center">
+                    <a
+                        href="https://www.abuseipdb.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        <LinkIcon />
+                        <span>AbuseIPDB</span>
+                    </a>
+                </li>
+                <li class="justify-self-center">
+                    <a
+                        href="https://polyswarm.io"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        <LinkIcon />
+                        <span>PolySwarm</span>
+                    </a>
+                </li>
+                <li class="justify-self-center">
+                    <a
+                        href="https://www.robtex.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
+                    >
+                        <LinkIcon />
+                        <span>Robtex</span>
+                    </a>
+                </li>
             </ul>
         </div>
     </article>
 
-    <div class="flex gap-5 items-center justify-center m-6">
-        {
-            SOCIAL_DATA.map((social) => {
-                return (
-                    <a
-                        id={`link-${social.name}`}
-                        href={social.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={social.name}
-                        class="hover:text-secondary/90 transition duration-100 ease-in-out"
-                    >
-                        {social.name === "LinkedIn" && <LinkedInIcon />}
-                        {social.name === "GitHub" && <GitHubIcon />}
-                        {social.name === "HackTheBox" && <HackTheBoxIcon />}
-                        {social.name === "X/Twitter" && <XIcon />}
-                        {social.name === "Contactame" && <MailIcon />}
-                    </a>
-                );
-            })
-        }
-    </div>
-
-    <div class="text-center prose-invert">
-        © {currentYear} Todos los derechos reservados. Hecho con ❤️ usando Astro y
-        Tailwind CSS.
+    <div class="text-center">
+        © {currentYear}. Todos los derechos reservados. Hecho con ❤️ usando
+        Astro y Tailwind CSS.
     </div>
 </footer>
+
+<style>
+    .powered-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.75rem 1rem;
+    }
+
+    .powered-grid > li {
+        grid-column: span 2;
+    }
+
+    /* Si sobra 1 elemento en la última fila, ocupa todo el ancho */
+    .powered-grid > li:nth-last-child(1):nth-child(3n + 1) {
+        grid-column: 1 / -1;
+    }
+
+    /* Si sobran 2 elementos, se centran con menos separación */
+    .powered-grid > li:nth-last-child(2):nth-child(3n + 1) {
+        grid-column: 2 / span 2;
+    }
+
+    .powered-grid > li:nth-last-child(1):nth-child(3n + 2) {
+        grid-column: 4 / span 2;
+    }
+</style>

@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@astrojs/node':
-        specifier: ^10.0.3
+        specifier: 10.0.3
         version: 10.0.3(astro@6.0.8(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.0))
       '@astrojs/preact':
         specifier: 5.0.2
@@ -23,6 +23,9 @@ importers:
       preact:
         specifier: 10.29.0
         version: 10.29.0
+      rate-limiter-flexible:
+        specifier: ^10.0.1
+        version: 10.0.1
       tailwindcss:
         specifier: 4.2.2
         version: 4.2.2
@@ -1534,6 +1537,9 @@ packages:
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
+
+  rate-limiter-flexible@10.0.1:
+    resolution: {integrity: sha512-3G6GMFz5Oz5nVnDv9gQ1LLMdExR4B1lOjogPIjehtgyxPMIkY09BGyk2eCYt36/OkV/0t12GEt6J6HpTl6RzZg==}
 
   readdirp@5.0.0:
     resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
@@ -3555,6 +3561,8 @@ snapshots:
   radix3@1.1.2: {}
 
   range-parser@1.2.1: {}
+
+  rate-limiter-flexible@10.0.1: {}
 
   readdirp@5.0.0: {}
 

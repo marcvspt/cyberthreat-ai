@@ -1,20 +1,21 @@
-const API_VT_IP = "https://www.virustotal.com/api/v3/ip_addresses"
-const API_ABUSEIPDB = "https://api.abuseipdb.com/api/v2/check?ipAddress"
+const VIRUSTOTAL_API_IP = "https://www.virustotal.com/api/v3/ip_addresses"
+const ABUSEIPDB_API = "https://api.abuseipdb.com/api/v2/check?ipAddress"
 
 const VIRUSTOTAL_API_KEY = import.meta.env.VIRUSTOTAL_API_KEY
 const ABUSEIPDB_API_KEY = import.meta.env.ABUSEIPDB_API_KEY
 
-export async function analyzeIP(ip: string) {
+export async function analyzeIP(ip: string, vtKey?: string, abuseKey?: string) {
     const ioc = ip.trim().toLowerCase()
-
+    const resolvedVTKey = vtKey || VIRUSTOTAL_API_KEY
+    const resolvedAbuseKey = abuseKey || ABUSEIPDB_API_KEY
 
     const [virustotalResponse, abuseipdbResponse] = await Promise.all([
-        fetch(`${API_VT_IP}/${ioc}`, {
-            headers: { "x-apikey": VIRUSTOTAL_API_KEY }
+        fetch(`${VIRUSTOTAL_API_IP}/${ioc}`, {
+            headers: { "x-apikey": resolvedVTKey }
         }),
-        fetch(`${API_ABUSEIPDB}=${ioc}&verbose`, {
+        fetch(`${ABUSEIPDB_API}=${ioc}&verbose`, {
             headers: {
-                "Key": ABUSEIPDB_API_KEY,
+                "Key": resolvedAbuseKey,
                 "Accept": "application/json"
             }
         })

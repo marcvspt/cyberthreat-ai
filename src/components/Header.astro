@@ -6,11 +6,16 @@ import GitHubIcon from "@/assets/github.svg";
 
 <header>
     <nav class="flex flex-row justify-center items-center gap-4 mt-4">
-        <h2 class="text-xl">
-            {SITE_DATA.name}
+        <h2 class="text-2xl font-extrabold tracking-tight leading-none">
+            <span>{SITE_DATA.name.split(" ")[0]}</span>
+            <span class="text-primary">
+                {SITE_DATA.name.split(" ").slice(1).join(" ")}</span
+            >
         </h2>
         <a
             href={SITE_DATA.repository}
+            target="_blank"
+            rel="noopener noreferrer"
             class="rounded-md p-2 hover:bg-secondary/30 transition-colors duration-300"
         >
             <span class="flex justify-center items-center gap-2">

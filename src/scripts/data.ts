@@ -1,6 +1,6 @@
 export const SITE_DATA = {
     name: "CyberThreat AI",
-    description: "Aplicación desarrollada para el Hackathon de Midudev, con el objetivo de demostrar mis habilidades en desarrollo web y ciberseguridad.",
+    description: "Aplicación desarrollada para el Hackaton de Midudev + CubePath, con el objetivo de demostrar mis habilidades en desarrollo web y ciberseguridad.",
     url: "https://ctai.marcvspt.tech",
     repository: "https://github.com/marcvspt/cyberthreat-ai",
 }

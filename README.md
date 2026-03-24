@@ -1,169 +1,183 @@
 # CyberThreat AI
 
-Este proyecto fue realizado para participar en la [Hackathon de Midudev+Cubepath de 2026](https://github.com/midudev/hackaton-cubepath-2026). La funcionalidad se basa en adquirir información de diferentes fuentes de información de indicadores de compromiso (IoC) y ataque (IoA), luego darle esa información a la IA y que nos de su opinión sobre si es malicioso, sospechoso o seguro ese IoC.
+Proyecto creado para la [Hackaton Midudev + CubePath 2026](https://github.com/midudev/hackaton-cubepath-2026).
 
-## Para levantar el proyecto
+CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes de threat intelligence (VirusTotal, AbuseIPDB, PolySwarm y Robtex), y después consulta una IA vía OpenRouter para entregar un veredicto razonado en español.
 
-Tienes que crear un `.env` y añadir las siguientes API KEY:
+## TODO
+
+- [x] Endpoint para envío de IoCs
+- [x] Formulario de envío de IoCs
+- [x] Espacio para respuesta
+- [x] Creación de función para clasificar IoCs mediante regex
+- [x] Conexión con API de [VirusTotal](https://virustotal.com)
+- [x] Conexión con API de [AbuseIPDB](https://abuseipdb.com)
+- [x] Conexión con API de [PolySwarm](https://polyswarm.network)
+- [x] Conexión con API de [Robtex](https://robtex.com)
+- [x] Conexión con OpenRouter
+- [x] Normalización de información
+- [x] Stream de datos de la respuesta de la IA
+- [x] Despliegue de la plataforma
+- [x] Rate limit de consultas  a la API
+- [x] Colocar API key propias de los usuarios para las herramientas utilizadas
+- [x] Permitir a los usuarios usar varios modelos de IA que quieran (**Por el momento solo las de OpenRouter**)
+
+## Características actuales
+
+- Endpoint único de análisis en `/api/ctai`.
+- Detección de tipo de IoC por regex (IP, dominio o hash).
+- Streaming en tiempo real de la respuesta de IA (SSE).
+- Rate limit por IP en `/api/ctai` (configurable por variables de entorno).
+- Selector de modelo de IA desde UI (lista permitida).
+- Modal para configurar API keys del usuario (persistidas en localStorage).
+- Fallback automático a variables de entorno si no se envían keys por cabecera.
+
+## Puesta en marcha
+
+1. Instala dependencias:
+
+```sh
+pnpm install
+```
+
+1. Crea un archivo `.env` con las keys (opcionales, recomendadas para fallback backend):
 
 ```env
 VIRUSTOTAL_API_KEY=your-virustotal-apikey
 ABUSEIPDB_API_KEY=your-abuseipdb-apikey
 POLYSWARM_API_KEY=your-polyswarm-apikey
-OTX_API_KEY=your-alienvaultotx-apikey
+OPENROUTER_API_KEY=your-openrouter-apikey
+RATE_LIMIT_POINTS=8
+RATE_LIMIT_DURATION=60
 ```
 
-Se ejecuta de la siguiente forma:
+> Robtex ofrece API pública sin API key para el flujo actual.
+
+1. Ejecuta en desarrollo:
 
 ```sh
 pnpm run dev
 ```
 
-## TODO
+## API
 
-### Requeridos
-
-- [x] Endpoint para envío de IoCs
-- [x] Formulario de envío de IoCs
-- [x] Espacio para respuesta (***parcialmente, solo el JSON***)
-- [x] Creación de función para clasificar IoCs mediante regex
-- [x] Conexión con API de [VirusTotal](https://virustotal.com)
-- [x] Conexión con API de [AbuseIPDB](https://abuseipdb.com)
-- [x] Conexión con API de [PolySwarm](https://polyswarm.network)
-- [x] Conexión con API de [AlienVault OTX](https://otx.alienvault.com) (***Servicio login no funciona, se espera a que funicione o se buscará un remplazo***)
-- [ ] Conexión con OpenRouter
-- [ ] Normalización de información
-- [ ] Stream de datos de la respuesta de la IA
-- [ ] Colocar los tipos correctos faltantes
-- [ ] Despliegue de la plataforma
-- [ ] Rate limit de consultas  a la API
-
-### Deseados a futuro
-
-- [ ] Implementar `zod` para validación de datos
-- [ ] Creación de cuentas de usuarios (Clerk?)
-- [ ] Guardar historial de busquedas y respuestas
-- [ ] Cache de respuestas de las APIs y de las IAs para IoCs recientes
-- [ ] Implementar más herramientas de información sobre IoCs
-- [ ] Colocar API KEY propias de las herramientas utilizadas
-- [ ] Permitir a los usuarios usar la IA especifica que quieran
-
-## Estructura del proyecto
-
-```text
-/
-├── astro.config.mjs
-├── package.json
-├── pnpm-lock.yaml
-├── README.md
-├── tsconfig.json
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   │   ├── App.tsx
-│   │   ├── Footer.astro
-│   │   ├── Header.astro
-│   │   └── LoaderSpinner.tsx
-│   ├── hooks/
-│   │   └── useAnalyzeIoC.ts
-│   ├── layouts/
-│   │   └── LayoutBase.astro
-│   ├── pages/
-│   │   ├── index.astro
-│   │   └── api/
-│   │       ├── ctai.ts
-│   │       ├── health.ts
-│   │       └── nothing.ts
-│   ├── scripts/
-│   │   ├── data.ts
-│   │   ├── utils.ts
-│   │   └── iocs/
-│   │       ├── domain.ts
-│   │       ├── hash.ts
-│   │       └── ip.ts
-│   └── styles/
-│       └── global.css
-```
-
-## La API
-
-### 1) Estado de servicio (health)
+### 1) Health
 
 - Ruta: `/api/health`
-- Método: GET
-- Descripción: verifica que la API está viva.
-- Respuesta de éxito **200**:
+- Método: `GET`
+- Respuesta:
 
 ```json
-  {
-    "status": "ok"
-  }
+{
+  "status": "ok"
+}
 ```
 
-### 2) Análisis de IoC (ctai)
+### 2) Análisis IoC + IA en stream
 
-- Ruta: `/api/ctai?ioc=<valor>`
-- Método: GET
-- Parámetro:
-  - `ioc` (string, requerido): indicador de compromiso (IP, dominio o hash).
-- Función: detecta el tipo de IoC usando `PATTERNS` de `src/scripts/utils.ts`; luego llama a:
-  - `analyzeIP(ioc)` si es IP
-  - `analyzeDomain(ioc)` si es dominio
-  - `analyzeHash(ioc)` si es hash
+- Ruta: `/api/ctai?ioc=<valor>&model=<modelo>`
+- Método: `GET`
+- Query params:
+  - `ioc` (requerido): indicador IP, dominio o hash.
+  - `model` (opcional): modelo permitido; si no es válido se usa el default.
 
-- Errores posibles:
-  - **400**: falta el parámetro `ioc`.
+- Headers opcionales para keys de usuario:
+  - `X-OpenRouter-Key`
+  - `X-VT-Key`
+  - `X-AbuseIPDB-Key`
+  - `X-Polyswarm-Key`
+
+- Content-Type de salida:
+  - `text/event-stream`
+
+- Eventos SSE emitidos:
+  - `meta`: metadatos `{ ioc, type, model }`
+  - `chunk`: fragmentos de texto `{ content }`
+  - `done`: fin del stream `{ done: true }`
+  - `error`: error en stream `{ error }`
+
+Ejemplo:
+
+```bash
+curl "http://localhost:4321/api/ctai?ioc=1.2.3.4&model=openrouter/auto"
+```
+
+Errores comunes (JSON):
 
 ```json
 { "error": "Missing IoC parameter" }
 ```
 
-  - **400**: tipo de IoC no reconocido.
-
 ```json
 { "error": "Unknown IoC type" }
 ```
-
-  - **500**: error interno en el análisis.
 
 ```json
 { "error": "Analysis failed" }
 ```
 
-- Ejemplo de llamada:
-
-```bash
-curl "http://localhost:3000/api/ctai?ioc=1.2.3.4"
-```
-
-- Ejemplo de respuesta (200):
-
 ```json
-{
-  "ioc": "",
-  "type": "ip",
-  "source1": {
-    "name": "VirusTotal",
-    "apiResponse": { ... }
-  },
-  "source2": {
-    "name": "AbuseIPDB",
-    "apiResponse": { ... }
-  }
-}
+{ "error": "Too many requests", "retryAfterSeconds": 12 }
 ```
 
-> Nota: Para dominio y hash, `source2` es respectivamente `AlienVault OTX` o `PolySwarm`.
-> El contenido real de `apiResponse` depende de las APIs externas configuradas en `.env` y de la respuesta de cada proveedor.
+## Modelos permitidos
 
-## Tecnologías utilizadas
+La fuente única de modelos está en `src/scripts/utils.ts` (`AI_MODELS`).
 
-- [TypeScript](https://www.typescriptlang.org/)
+Actualmente:
+
+- `openrouter/auto`
+- `openrouter/free`
+
+## Estructura (resumen)
+
+```text
+src/
+├── assets/
+├── components/
+│   ├── AIResponsePanel.tsx
+│   ├── ApiKeysModal.tsx
+│   ├── App.tsx
+│   ├── Footer.astro
+│   ├── Header.astro
+│   ├── IoCSearchForm.tsx
+│   └── LoaderSpinner.tsx
+├── hooks/
+│   ├── useAnalyzeIoC.ts
+│   └── useApiKeys.ts
+├── pages/
+│   └── api/
+│       ├── ctai.ts
+│       └── health.ts
+├── scripts/
+│   ├── data.ts
+│   ├── iocs/
+│   │   ├── domain.ts
+│   │   ├── hash.ts
+│   │   └── ip.ts
+│   ├── types.ts
+│   └── utils.ts
+└── styles/
+    └── global.css
+```
+
+## Roadmap
+
+- [ ] Implementar `zod` para validación de datos
+- [ ] Creación de cuentas de usuarios
+- [ ] Guardar historial de busquedas y respuestas
+- [ ] Cache de respuestas de las APIs y de las IAs para IoCs recientes
+- [ ] Implementar más herramientas de información sobre IoCs
+
+## Stack
+
+- [Cubepath](https://cubepath.com)
 - [Astro](https://astro.build/)
-- [Tailwind](https://tailwindcss.com/)
+- [Preact](https://preactjs.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [OpenRouter](https://openrouter.ai/)
 - [VirusTotal](https://www.virustotal.com/)
 - [AbuseIPDB](https://www.abuseipdb.com/)
-- [PolySwarm](https://polyswarm.network/)
-- [AlienVault OTX](https://otx.alienvault.com/)
-- [OpenRouter](https://openrouter.ai/)
+- [PolySwarm](https://polyswarm.io/)
+- [Robtex](https://www.robtex.com/)
