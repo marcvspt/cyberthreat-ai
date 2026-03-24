@@ -33,13 +33,13 @@ export default function IoCSearchForm({ loading, onSubmit, hasCustomKeys, onOpen
         >
             <div className="space-y-5 p-5 md:p-6">
                 <p className="space-y-2 text-sm text-center">
-                    Envía una IP, un dominio o un hash y un modelo de IA redacta un veredicto del IoC basandose en la información de distintas fuentes de datos de inteligencia de amenazas y analizadores de indicadores de compromiso y ataque.
+                    Envía una IP, un dominio o un hash y un modelo de IA redacta un veredicto del IoC basandose en la información de distintas fuentes de datos de inteligencia de amenazas y analizadores de IoC.
                 </p>
 
                 <div className="rounded-3xl border border-primary/30 bg-slate-950/45 p-3 shadow-inner shadow-black/10">
                     <div className="mb-3 flex items-center justify-between px-2">
                         <label htmlFor="ioc-input" className="text-xs uppercase tracking-[0.28em] text-secondary/85">
-                            Indicador de compromiso o ataque
+                            Indicador de compromiso
                         </label>
                         <button
                             type="button"

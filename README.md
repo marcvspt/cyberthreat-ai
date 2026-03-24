@@ -163,6 +163,8 @@ src/
 
 ## Roadmap
 
+- [ ] Enviar multiples IoCs en la misma consulta separandolos por coma, punto y coma, y/o salto de linea.
+- [ ] Enviar IoCs por lotes usando archivos **CSV** o dividos por salto
 - [ ] Implementar `zod` para validación de datos
 - [ ] Creación de cuentas de usuarios
 - [ ] Guardar historial de busquedas y respuestas
