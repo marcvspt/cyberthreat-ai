@@ -14,7 +14,7 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 - [x] Conexión con API de [AbuseIPDB](https://abuseipdb.com)
 - [x] Conexión con API de [PolySwarm](https://polyswarm.network)
 - [x] Conexión con API de [Robtex](https://robtex.com)
-- [x] Conexión con OpenRouter
+- [x] Conexión con API de [OpenRouter](https://openrouter.ai)
 - [x] Normalización de información
 - [x] Stream de datos de la respuesta de la IA
 - [x] Despliegue de la plataforma
