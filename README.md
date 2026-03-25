@@ -4,6 +4,13 @@
 
 CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes de threat intelligence (VirusTotal, AbuseIPDB, PolySwarm y Robtex), y después consulta una IA vía OpenRouter para entregar un veredicto razonado en español.
 
+![alt text](image-2.png)
+![alt text](image-1.png)
+
+***Use un VPS con Dokploy para el despliegue de esta plataforma CyberThreat AI. Desde que conozco Dokploy lo he querido probar más haya de una PoC simple por hobbie, y este Hakaton me dio la oportunidad de usarlo y jugar con esta herramienta***
+
+![alt text](image.png)
+
 ## TODO
 
 - [x] Endpoint para envío de IoCs
