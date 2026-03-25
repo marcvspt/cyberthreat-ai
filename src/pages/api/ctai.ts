@@ -61,13 +61,13 @@ function buildPrompt(ioc: string, iocType: IoCType, toolResult: unknown) {
         "Classify it as malicious (Malicioso), suspicious (Sospechoso), or benign (Benigno).",
         "Response with markdon.",
         "Use this structure exactly:",
-        "<bold>Veredicto:</bold> <Malicioso|Sospechoso|Benigno>",
-        "<bold>Confianza:</bold> <Baja|Media|Alta>",
-        "<line break><bold>Resumen:</bold> <short summary of the analysis>",
-        "<line break><bold>Motivos:</bold>",
+        "**Veredicto:** <Malicioso|Sospechoso|Benigno>",
+        "**Confianza:** <Baja|Media|Alta>",
+        "\n**Resumen:** <short summary of the analysis>",
+        "\n**Motivos:**",
         "- <reason>",
         "- <reason>",
-        "<line break><bold>Acciones recomendadas:</bold>",
+        "\n**Acciones recomendadas:**",
         "- <action>",
         "- <action>",
         `IoC: ${ioc}`,
@@ -166,7 +166,9 @@ async function createAIStream(ioc: string, iocType: IoCType, toolResult: unknown
                         }
 
                         const parsed = JSON.parse(payload)
-                        const delta = parsed?.choices?.[0]?.delta?.content
+                        const deltaChoice = parsed?.choices?.[0]?.delta
+                        // Algunos modelos envían en 'content', otros en 'reasoning'
+                        const delta = deltaChoice?.content || deltaChoice?.reasoning
 
                         if (typeof delta === "string" && delta.length > 0) {
                             controller.enqueue(encoder.encode(createSseEvent("chunk", { content: delta })))

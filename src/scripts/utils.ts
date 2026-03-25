@@ -3,6 +3,8 @@ import type { AiModel } from '@/scripts/types.ts';
 export const AI_MODELS: AiModel[] = [
     { id: 'openrouter/auto', label: 'Default - OpenRouter (Auto)', provider: 'OpenRouter' },
     { id: 'openrouter/free', label: 'OpenRouter (Free)', provider: 'OpenRouter' },
+    { id: 'stepfun/step-3.5-flash:free', label: 'StepFun: Step 3.5 Flash (free)', provider: 'StepFun' },
+
 ];
 
 export const PATTERNS = {
