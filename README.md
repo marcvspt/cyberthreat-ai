@@ -43,7 +43,7 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 - Si falla una API de IoC, se corta el flujo y no se llama a la IA.
 - Respuesta de error con API afectada (`failedApi`) cuando aplica.
 
-## Contribuir
+## Desplegar para desarrollo
 
 1. Instala dependencias:
 
@@ -173,6 +173,7 @@ src/
 │       └── health.ts
 ├── scripts/
 │   ├── data.ts
+|   |-- errors.ts
 │   ├── iocs/
 │   │   ├── domain.ts
 │   │   ├── hash.ts
