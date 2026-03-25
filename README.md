@@ -142,6 +142,7 @@ Actualmente:
 
 - `openrouter/auto`
 - `openrouter/free`
+- `stepfun/step-3.5-flash:free`
 
 ## Estructura (resumen)
 
