@@ -1,6 +1,6 @@
 # CyberThreat AI
 
-Proyecto creado para la [Hackaton Midudev + CubePath 2026](https://github.com/midudev/hackaton-cubepath-2026).
+> Proyecto creado para la [Hackaton Midudev + CubePath 2026](https://github.com/midudev/hackaton-cubepath-2026). Puedes probar el proyecto en [https://ctai.marcvspt.tech](https://ctai.marcvspt.tech).
 
 CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes de threat intelligence (VirusTotal, AbuseIPDB, PolySwarm y Robtex), y después consulta una IA vía OpenRouter para entregar un veredicto razonado en español.
 
@@ -27,12 +27,16 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 - Endpoint único de análisis en `/api/ctai`.
 - Detección de tipo de IoC por regex (IP, dominio o hash).
 - Streaming en tiempo real de la respuesta de IA (SSE).
+- Render de markdown en la UI con `marked` + sanitización con `DOMPurify`.
 - Rate limit por IP en `/api/ctai` (configurable por variables de entorno).
 - Selector de modelo de IA desde UI (lista permitida).
 - Modal para configurar API keys del usuario (persistidas en localStorage).
 - Fallback automático a variables de entorno si no se envían keys por cabecera.
+- Manejo de errores personalizado por etapa (`ioc` o `ai`) sin exponer mensajes crudos de proveedores.
+- Si falla una API de IoC, se corta el flujo y no se llama a la IA.
+- Respuesta de error con API afectada (`failedApi`) cuando aplica.
 
-## Puesta en marcha
+## Contribuir
 
 1. Instala dependencias:
 
@@ -94,7 +98,7 @@ pnpm run dev
   - `meta`: metadatos `{ ioc, type, model }`
   - `chunk`: fragmentos de texto `{ content }`
   - `done`: fin del stream `{ done: true }`
-  - `error`: error en stream `{ error }`
+  - `error`: error en stream `{ error, stage, failedApi? }`
 
 Ejemplo:
 
@@ -102,18 +106,28 @@ Ejemplo:
 curl "http://localhost:4321/api/ctai?ioc=1.2.3.4&model=openrouter/auto"
 ```
 
+Comportamiento de errores:
+
+- Si falla una fuente de IoC (VirusTotal, AbuseIPDB, Robtex, PolySwarm), el backend responde error y no se invoca OpenRouter.
+- Si falla la IA (OpenRouter), se devuelve un error personalizado de etapa `ai`.
+- En ambos casos se evita exponer el mensaje crudo del proveedor y se informa `failedApi` cuando está disponible.
+
 Errores comunes (JSON):
 
 ```json
-{ "error": "Missing IoC parameter" }
+{ "error": "Falta el parámetro de IoC" }
 ```
 
 ```json
-{ "error": "Unknown IoC type" }
+{ "error": "Tipo de IoC desconocido" }
 ```
 
 ```json
-{ "error": "Analysis failed" }
+{ "error": "No se pudo completar la consulta de fuentes del IoC.", "stage": "ioc", "failedApi": "VirusTotal" }
+```
+
+```json
+{ "error": "No se pudo completar el análisis con la IA.", "stage": "ai", "failedApi": "OpenRouter" }
 ```
 
 ```json
@@ -163,6 +177,8 @@ src/
 
 ## Roadmap
 
+- [ ] Implementar test
+- [ ] Refactorizar y simplificar código
 - [ ] Enviar multiples IoCs en la misma consulta separandolos por coma, punto y coma, y/o salto de linea.
 - [ ] Enviar IoCs por lotes usando archivos **CSV** o dividos por salto
 - [ ] Implementar `zod` para validación de datos
@@ -177,9 +193,15 @@ src/
 - [Astro](https://astro.build/)
 - [Preact](https://preactjs.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
+- [Tabler Icons](https://tabler.io/icons)
+- [SVGl](https://svgl.app/)
+- [Heroicons](https://heroicons.com/)
 - [TypeScript](https://www.typescriptlang.org/)
+- [marked](https://github.com/markedjs/marked)
+- [DOMPurify](https://github.com/cure53/DOMPurify)
 - [OpenRouter](https://openrouter.ai/)
 - [VirusTotal](https://www.virustotal.com/)
 - [AbuseIPDB](https://www.abuseipdb.com/)
 - [PolySwarm](https://polyswarm.io/)
 - [Robtex](https://www.robtex.com/)
+- [GitHub Copilot](https://github.com/copilot/)

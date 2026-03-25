@@ -3,6 +3,7 @@ export const SITE_DATA = {
     description: "Aplicación desarrollada para el Hackaton de Midudev + CubePath, con el objetivo de demostrar mis habilidades en desarrollo web y ciberseguridad.",
     url: "https://ctai.marcvspt.tech",
     repository: "https://github.com/marcvspt/cyberthreat-ai",
+    aboutMe: "https://marcvspt.tech/about"
 }
 
 export const SOCIAL_DATA = [
