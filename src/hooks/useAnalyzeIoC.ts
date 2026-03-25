@@ -26,6 +26,11 @@ function parseSseEvents(chunk: string) {
         });
 }
 
+function buildUiErrorMessage(payload: { error?: string; failedApi?: string }) {
+    const base = payload.error || 'No se pudo completar el análisis';
+    return payload.failedApi ? `${base} API afectada: ${payload.failedApi}.` : base;
+}
+
 export function useAnalyzeIoC(keys: ApiKeys) {
     const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
     const [data, setData] = useState('');
@@ -63,7 +68,7 @@ export function useAnalyzeIoC(keys: ApiKeys) {
 
             if (!response.ok) {
                 const result = await response.json();
-                setData(`Error: ${result.error || 'Analysis failed'}`);
+                setData(`Error: ${buildUiErrorMessage(result)}`);
                 setStatus('error');
                 return;
             }
@@ -106,7 +111,7 @@ export function useAnalyzeIoC(keys: ApiKeys) {
                     }
 
                     if (event.event === 'error') {
-                        setData(`Error: ${payload.error || 'Analysis failed'}`);
+                        setData(`Error: ${buildUiErrorMessage(payload)}`);
                         setStatus('error');
                     }
 

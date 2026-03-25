@@ -64,8 +64,8 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
 
     const handleClear = () => {
         const empty: ApiKeys = { openrouter: '', virustotal: '', abuseipdb: '', polyswarm: '' };
+        setDraft(empty);
         onSave(empty);
-        onClose();
     };
 
     return (

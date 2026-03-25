@@ -1,3 +1,5 @@
+import { ProviderError } from '@/scripts/errors.ts'
+
 const VIRUSTOTAL_API_FILEHASH = "https://www.virustotal.com/api/v3/files"
 const POLYSWARM_API = "https://api.polyswarm.network/v3/search/hash"
 
@@ -23,6 +25,22 @@ function checkHashType(hash: string) {
     return "N/A"
 }
 
+async function fetchWithProviderGuard(provider: string, input: RequestInfo | URL, init?: RequestInit) {
+    let response: Response
+
+    try {
+        response = await fetch(input, init)
+    } catch {
+        throw new ProviderError('ioc', provider)
+    }
+
+    if (!response.ok) {
+        throw new ProviderError('ioc', provider)
+    }
+
+    return response
+}
+
 
 export async function analyzeHash(hash: string, vtKey?: string, polyKey?: string) {
     const hashType = checkHashType(hash)
@@ -31,10 +49,10 @@ export async function analyzeHash(hash: string, vtKey?: string, polyKey?: string
     const resolvedPolyKey = polyKey || POLYSWARM_API_KEY
 
     const [virustotalResponse, polyswarmResponse] = await Promise.all([
-        fetch(`${VIRUSTOTAL_API_FILEHASH}/${ioc}`, {
+        fetchWithProviderGuard('VirusTotal', `${VIRUSTOTAL_API_FILEHASH}/${ioc}`, {
             headers: { "x-apikey": resolvedVTKey }
         }),
-        fetch(`${POLYSWARM_API}/${hashType}?hash=${ioc}`, {
+        fetchWithProviderGuard('PolySwarm', `${POLYSWARM_API}/${hashType}?hash=${ioc}`, {
             headers: { "Authorization": resolvedPolyKey }
         })
     ])

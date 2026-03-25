@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
+import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 import type { AnalyzeIoCMeta, StreamStatus } from '@/hooks/useAnalyzeIoC.ts';
 
 type AIResponsePanelProps = {
@@ -53,7 +55,7 @@ function getStatusMessage(status: StreamStatus) {
     }
 
     if (status === 'analyzing') {
-        return 'Recolectando evidencia de las herramientas...';
+        return 'Recolectando evidencias de las herramientas...';
     }
 
     if (status === 'streaming') {
@@ -64,11 +66,14 @@ function getStatusMessage(status: StreamStatus) {
         return 'Respuesta completada';
     }
 
-    return 'La consulta terminó con error';
+    return 'Algo salió mal durante el análisis';
 }
 
 export default function AIResponsePanel({ data, loading, status, meta }: AIResponsePanelProps) {
     const [emptyMessage, setEmptyMessage] = useState(() => getRandomMessage(EMPTY_MESSAGES.idle));
+    const renderedMarkdown = data ? (marked.parse(data, { async: false, breaks: true, gfm: true }) as string) : '';
+    const safeRenderedMarkdown = renderedMarkdown ? DOMPurify.sanitize(renderedMarkdown) : '';
+    const isError = status === 'error';
 
     useEffect(() => {
         if (data) {
@@ -93,7 +98,7 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
         <section className="w-full max-w-5xl overflow-hidden rounded-3xl border border-primary/30 bg-primary/12 shadow-2xl backdrop-blur">
             <header className="flex items-center justify-between border-b border-primary/20 bg-primary/10 px-5 py-4">
                 <div>
-                    <h2 className="text-lg font-semibold text-white">Análisis realizado por la IA</h2>
+                    <h2 className="text-lg font-semibold text-white">Resultados del análisis</h2>
                 </div>
                 <span className="rounded-full border border-secondary/35 bg-secondary/15 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-secondary">
                     {status}
@@ -115,9 +120,16 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                         <span>{getStatusMessage(status)}</span>
                     </div>
 
-                    <div className="font-mono text-sm leading-7 whitespace-pre-wrap text-slate-100">
-                        {data || <span className="italic text-slate-300/90">{emptyMessage}</span>}
-                    </div>
+                    {data ? (
+                        <div
+                            className={`text-sm leading-7 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_a]:underline [&_strong]:font-semibold [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:border [&_pre]:p-4 ${isError ? 'rounded-xl border border-red-400/30 bg-red-950/25 px-4 py-3 text-red-200 [&_a]:text-red-300 [&_code]:bg-red-400/10 [&_pre]:border-red-400/25 [&_pre]:bg-red-950/35' : 'text-slate-100 [&_a]:text-secondary [&_code]:bg-white/10 [&_pre]:border-primary/25 [&_pre]:bg-slate-950/50'}`}
+                            dangerouslySetInnerHTML={{ __html: safeRenderedMarkdown }}
+                        />
+                    ) : (
+                        <div className="font-mono text-sm leading-7 whitespace-pre-wrap text-slate-100">
+                            <span className="italic text-slate-300/90">{emptyMessage}</span>
+                        </div>
+                    )}
                 </div>
             </div>
         </section>

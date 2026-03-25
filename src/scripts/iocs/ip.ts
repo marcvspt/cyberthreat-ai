@@ -1,8 +1,26 @@
+import { ProviderError } from '@/scripts/errors.ts'
+
 const VIRUSTOTAL_API_IP = "https://www.virustotal.com/api/v3/ip_addresses"
 const ABUSEIPDB_API = "https://api.abuseipdb.com/api/v2/check?ipAddress"
 
 const VIRUSTOTAL_API_KEY = import.meta.env.VIRUSTOTAL_API_KEY
 const ABUSEIPDB_API_KEY = import.meta.env.ABUSEIPDB_API_KEY
+
+async function fetchWithProviderGuard(provider: string, input: RequestInfo | URL, init?: RequestInit) {
+    let response: Response
+
+    try {
+        response = await fetch(input, init)
+    } catch {
+        throw new ProviderError('ioc', provider)
+    }
+
+    if (!response.ok) {
+        throw new ProviderError('ioc', provider)
+    }
+
+    return response
+}
 
 export async function analyzeIP(ip: string, vtKey?: string, abuseKey?: string) {
     const ioc = ip.trim().toLowerCase()
@@ -10,10 +28,10 @@ export async function analyzeIP(ip: string, vtKey?: string, abuseKey?: string) {
     const resolvedAbuseKey = abuseKey || ABUSEIPDB_API_KEY
 
     const [virustotalResponse, abuseipdbResponse] = await Promise.all([
-        fetch(`${VIRUSTOTAL_API_IP}/${ioc}`, {
+        fetchWithProviderGuard('VirusTotal', `${VIRUSTOTAL_API_IP}/${ioc}`, {
             headers: { "x-apikey": resolvedVTKey }
         }),
-        fetch(`${ABUSEIPDB_API}=${ioc}&verbose`, {
+        fetchWithProviderGuard('AbuseIPDB', `${ABUSEIPDB_API}=${ioc}&verbose`, {
             headers: {
                 "Key": resolvedAbuseKey,
                 "Accept": "application/json"

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import type { IoCType } from '@/scripts/types.ts';
+import { ProviderError, toClientError } from '@/scripts/errors.ts';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 import { PATTERNS, AI_MODELS } from "@/scripts/utils.ts"
@@ -34,14 +35,6 @@ function jsonResponse(body: unknown, status: number) {
     })
 }
 
-function getErrorMessage(error: unknown) {
-    if (error instanceof Error) {
-        return error.message
-    }
-
-    return "Analysis failed"
-}
-
 function getClientIp(request: Request) {
     const cfConnectingIp = request.headers.get("cf-connecting-ip")
     if (cfConnectingIp) {
@@ -66,15 +59,15 @@ function buildPrompt(ioc: string, iocType: IoCType, toolResult: unknown) {
         "You are a senior cyber threat intelligence analyst.",
         "Analyze the provided indicator of compromise and respond in Spanish.",
         "Classify it as malicious (Malicioso), suspicious (Sospechoso), or benign (Benigno).",
-        "Return plain text only, without markdown fences.",
+        "Response with markdon.",
         "Use this structure exactly:",
-        "Veredicto: <Malicioso|Sospechoso|Benigno>",
-        "Confianza: <Baja|Media|Alta>",
-        "Resumen: <breve párrafo>",
-        "Motivos:",
+        "<bold>Veredicto:</bold> <Malicioso|Sospechoso|Benigno>",
+        "<bold>Confianza:</bold> <Baja|Media|Alta>",
+        "<line break><bold>Resumen:</bold> <short summary of the analysis>",
+        "<line break><bold>Motivos:</bold>",
         "- <reason>",
         "- <reason>",
-        "Acciones recomendadas:",
+        "<line break><bold>Acciones recomendadas:</bold>",
         "- <action>",
         "- <action>",
         `IoC: ${ioc}`,
@@ -89,38 +82,43 @@ function createSseEvent(event: string, data: unknown) {
 
 async function createAIStream(ioc: string, iocType: IoCType, toolResult: unknown, apiKey: string, model: string) {
     if (!apiKey) {
-        throw new Error("OpenRouter API key not configured")
+        throw new ProviderError('ai', 'OpenRouter')
     }
 
-    const response = await fetch(OPENROUTER_API_URL, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://ctai.marcvspt.tech",
-            "X-Title": "CyberThreat AI"
-        },
-        body: JSON.stringify({
-            model,
-            messages: [
-                {
-                    role: "user",
-                    content: buildPrompt(ioc, iocType, toolResult)
-                }
-            ],
-            temperature: 0.2,
-            max_tokens: 700,
-            stream: true
+    let response: Response
+
+    try {
+        response = await fetch(OPENROUTER_API_URL, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://ctai.marcvspt.tech",
+                "X-Title": "CyberThreat AI"
+            },
+            body: JSON.stringify({
+                model,
+                messages: [
+                    {
+                        role: "user",
+                        content: buildPrompt(ioc, iocType, toolResult)
+                    }
+                ],
+                temperature: 0.2,
+                max_tokens: 700,
+                stream: true
+            })
         })
-    })
+    } catch {
+        throw new ProviderError('ai', 'OpenRouter')
+    }
 
     if (!response.ok) {
-        const details = await response.text()
-        throw new Error(`OpenRouter API error: ${details}`)
+        throw new ProviderError('ai', 'OpenRouter')
     }
 
     if (!response.body) {
-        throw new Error("OpenRouter response body is not available")
+        throw new Error("Respuesta sin cuerpo de OpenRouter")
     }
 
     const decoder = new TextDecoder()
@@ -179,7 +177,7 @@ async function createAIStream(ioc: string, iocType: IoCType, toolResult: unknown
                 controller.enqueue(encoder.encode(createSseEvent("done", { done: true })))
                 controller.close()
             } catch (error: unknown) {
-                controller.enqueue(encoder.encode(createSseEvent("error", { error: getErrorMessage(error) })))
+                controller.enqueue(encoder.encode(createSseEvent("error", toClientError(error))))
                 controller.close()
             } finally {
                 reader.releaseLock()
@@ -215,7 +213,7 @@ export const GET = (async ({ request }) => {
     const ioc = urlObject.searchParams.get("ioc")
 
     if (!ioc) {
-        return jsonResponse({ error: "Missing IoC parameter" }, 400)
+        return jsonResponse({ error: "Falta el parámetro de IoC" }, 400)
     }
 
     // Determine IoC type
@@ -228,7 +226,7 @@ export const GET = (async ({ request }) => {
     }
 
     if (!iocType) {
-        return jsonResponse({ error: "Unknown IoC type" }, 400)
+        return jsonResponse({ error: "Tipo de IoC desconocido" }, 400)
     }
 
     const rawModel = urlObject.searchParams.get("model") ?? ""
@@ -252,7 +250,7 @@ export const GET = (async ({ request }) => {
                 toolResult = await analyzeHash(ioc, userVTKey, userPolyKey)
                 break
             default:
-                throw new Error("Invalid analysis type")
+                throw new Error("Tipo de IoC no soportado")
         }
 
         const stream = await createAIStream(ioc, iocType, toolResult, resolvedOrKey, resolvedModel)
@@ -262,6 +260,6 @@ export const GET = (async ({ request }) => {
             headers: streamHeaders
         })
     } catch (error: unknown) {
-        return jsonResponse({ error: getErrorMessage(error) }, 500)
+        return jsonResponse(toClientError(error), 500)
     }
 }) satisfies APIRoute;
