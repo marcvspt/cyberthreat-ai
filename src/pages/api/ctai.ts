@@ -12,7 +12,7 @@ import { analyzeHash } from "@/scripts/iocs/hash.ts"
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 const OPENROUTER_API_KEY = import.meta.env.OPENROUTER_API_KEY
 const OPENROUTER_MODEL_DEFAULT = "openrouter/auto"
-const RATE_LIMIT_POINTS = Number(import.meta.env.RATE_LIMIT_POINTS ?? 8)
+const RATE_LIMIT_POINTS = Number(import.meta.env.RATE_LIMIT_POINTS ?? 5)
 const RATE_LIMIT_DURATION = Number(import.meta.env.RATE_LIMIT_DURATION ?? 60)
 
 const ALLOWED_MODELS = new Set(AI_MODELS.map((m) => m.id))
