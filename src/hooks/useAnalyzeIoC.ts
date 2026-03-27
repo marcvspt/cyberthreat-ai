@@ -105,6 +105,19 @@ export function useAnalyzeIoC(keys: ApiKeys) {
                         setStatus('streaming');
                     }
 
+                    if (event.event === 'model' && typeof payload.model === 'string') {
+                        setMeta((current) => {
+                            if (!current) {
+                                return current;
+                            }
+
+                            return {
+                                ...current,
+                                model: payload.model
+                            };
+                        });
+                    }
+
                     if (event.event === 'chunk' && typeof payload.content === 'string') {
                         setStatus('streaming');
                         setData((current) => current + payload.content);
