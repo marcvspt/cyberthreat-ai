@@ -32,8 +32,10 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 ## Características actuales
 
 - Endpoint único de análisis en `/api/ctai`.
+- Orquestación modular del endpoint en `src/scripts/ctai.ts` (rate limit, resolución de IoC/modelo, stream SSE y ejecución por tipo).
 - Detección de tipo de IoC por regex (IP, dominio o hash).
 - Streaming en tiempo real de la respuesta de IA (SSE).
+- El modelo mostrado en UI corresponde al **modelo ruteado real** por OpenRouter (cuando está disponible).
 - Render de markdown en la UI con `marked` + sanitización con `DOMPurify`.
 - Rate limit por IP en `/api/ctai` (configurable por variables de entorno).
 - Selector de modelo de IA desde UI (lista permitida).
@@ -58,7 +60,7 @@ VIRUSTOTAL_API_KEY=your-virustotal-apikey
 ABUSEIPDB_API_KEY=your-abuseipdb-apikey
 POLYSWARM_API_KEY=your-polyswarm-apikey
 OPENROUTER_API_KEY=your-openrouter-apikey
-RATE_LIMIT_POINTS=8
+RATE_LIMIT_POINTS=5
 RATE_LIMIT_DURATION=60
 ```
 
@@ -67,7 +69,7 @@ RATE_LIMIT_DURATION=60
 1. Ejecuta en desarrollo:
 
 ```sh
-pnpm run dev
+pnpm run dev #http://localhost:4321
 ```
 
 ## API
@@ -103,9 +105,15 @@ pnpm run dev
 
 - Eventos SSE emitidos:
   - `meta`: metadatos `{ ioc, type, model }`
+  - `model`: actualización de modelo ruteado `{ model }`
   - `chunk`: fragmentos de texto `{ content }`
   - `done`: fin del stream `{ done: true }`
   - `error`: error en stream `{ error, stage, failedApi? }`
+
+Notas de `model`:
+
+- Si OpenRouter devuelve el modelo final de enrutamiento, se emite `model` y la UI muestra ese valor.
+- Si no lo devuelve, la UI mantiene el modelo solicitado originalmente.
 
 Ejemplo:
 
@@ -159,25 +167,31 @@ src/
 ├── components/
 │   ├── AIResponsePanel.tsx
 │   ├── ApiKeysModal.tsx
+│   ├── ApiKeysSettingsButton.tsx
 │   ├── App.tsx
 │   ├── Footer.astro
 │   ├── Header.astro
+│   ├── IoCInputField.tsx
 │   ├── IoCSearchForm.tsx
-│   └── LoaderSpinner.tsx
+│   ├── LoaderSpinner.tsx
+│   └── ModelSelector.tsx
 ├── hooks/
 │   ├── useAnalyzeIoC.ts
-│   └── useApiKeys.ts
+│   ├── useApiKeys.ts
+│   └── useClickOutside.ts
 ├── pages/
 │   └── api/
 │       ├── ctai.ts
 │       └── health.ts
 ├── scripts/
+│   ├── ctai.ts
 │   ├── data.ts
-|   |-- errors.ts
+│   ├── errors.ts
 │   ├── iocs/
 │   │   ├── domain.ts
 │   │   ├── hash.ts
 │   │   └── ip.ts
+│   ├── statusMessages.ts
 │   ├── types.ts
 │   └── utils.ts
 └── styles/
