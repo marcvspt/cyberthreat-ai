@@ -233,4 +233,6 @@ src/
 - [Robtex](https://www.robtex.com/)
 - [GitHub Copilot](https://github.com/copilot/)
 
+## Licencia
+
 Este proyecto está licenciado bajo los términos de la [GNU General Public License v3.0](https://github.com/marcvspt/cyberthreat-ai/blob/master/LICENSE).
