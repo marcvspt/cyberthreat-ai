@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import type { AIResponsePanelProps } from '@/scripts/types.ts';
-import { EMPTY_MESSAGES, getRandomMessage, getStatusMessage } from '@/scripts/statusMessages';
+import { EMPTY_MESSAGES, getRandomMessage, getStatusMessage } from '@/scripts/statusMessages.ts';
 
 export default function AIResponsePanel({ data, loading, status, meta }: AIResponsePanelProps) {
     const [emptyMessage, setEmptyMessage] = useState(() => getRandomMessage(EMPTY_MESSAGES.idle));

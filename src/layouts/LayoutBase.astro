@@ -1,7 +1,10 @@
 ---
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+
 import "@/styles/global.css";
 
-import { SITE_DATA } from "@/scripts/data.js";
+import { SITE_DATA } from "@/scripts/data.ts";
 
 export interface Props {
     title: string;
@@ -9,10 +12,11 @@ export interface Props {
     canonical?: string;
 }
 
-const { title, description = SITE_DATA.description, canonical } = Astro.props;
-
-import Header from "@/components/Header.astro";
-import Footer from "@/components/Footer.astro";
+const {
+    title,
+    description = SITE_DATA.description,
+    canonical = SITE_DATA.url,
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -26,7 +30,9 @@ import Footer from "@/components/Footer.astro";
         {canonical && <link rel="canonical" href={canonical} />}
         <title>{SITE_DATA.name} | {title}</title>
     </head>
-    <body class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-background-dark text-white">
+    <body
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-background-dark text-white"
+    >
         <Header />
         <slot />
         <Footer />

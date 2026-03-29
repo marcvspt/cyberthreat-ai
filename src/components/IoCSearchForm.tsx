@@ -1,7 +1,7 @@
 import { AVAILABLE_MODELS } from '@/hooks/useAnalyzeIoC.ts';
-import ApiKeysSettingsButton from '@/components/ApiKeysSettingsButton';
-import IoCInputField from '@/components/IoCInputField';
-import ModelSelector from '@/components/ModelSelector';
+import ApiKeysSettingsButton from '@/components/ApiKeysSettingsButton.tsx';
+import IoCInputField from '@/components/IoCInputField.tsx';
+import ModelSelector from '@/components/ModelSelector.tsx';
 import type { IoCSearchFormProps } from '@/scripts/types.ts';
 
 export default function IoCSearchForm({ loading, onSubmit, hasCustomKeys, onOpenSettings, selectedModel, onModelChange }: IoCSearchFormProps) {
