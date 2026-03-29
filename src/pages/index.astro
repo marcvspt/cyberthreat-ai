@@ -1,10 +1,10 @@
 ---
-import LayoutBase from "@/layouts/LayoutBase.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
 
 import App from "@/components/App.tsx";
 ---
 
-<LayoutBase title="Inicio">
+<BaseLayout title="Inicio">
 	<main class="py-8">
 		<h1 class="text-center text-wrap text-3xl text-secondary font-semibold">
 			¡Comienza tu <span class="text-primary font-bold"
@@ -15,4 +15,4 @@ import App from "@/components/App.tsx";
 		</h1>
 		<App client:load />
 	</main>
-</LayoutBase>
+</BaseLayout>
