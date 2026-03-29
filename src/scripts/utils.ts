@@ -3,8 +3,9 @@ import type { AiModel } from '@/scripts/types.ts';
 export const AI_MODELS: AiModel[] = [
     { id: 'openrouter/auto', label: 'Default - OpenRouter (Auto)', provider: 'OpenRouter' },
     { id: 'openrouter/free', label: 'OpenRouter (Free)', provider: 'OpenRouter' },
+    { id: 'liquid/lfm-2.5-1.2b-instruct-20260120:free', label: 'LiquidAI: LFM2.5-1.2B-Instruct (free)', provider: 'Liquid' },
     { id: 'stepfun/step-3.5-flash:free', label: 'StepFun: Step 3.5 Flash (free)', provider: 'StepFun' },
-
+    { id: 'google/gemma-3-4b-it:free', label: 'Google: Gemma 3 4B (free)', provider: 'Google AI Studio' },
 ];
 
 export const PATTERNS = {
