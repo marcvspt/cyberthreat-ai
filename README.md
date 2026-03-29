@@ -181,7 +181,7 @@ src/
 │   ├── useApiKeys.ts
 │   └── useClickOutside.ts
 ├── layouts/
-│   └── LayoutBase.astro
+│   └── BaseLayout.astro
 ├── pages/
 │   ├── index.astro
 │   └── api/
