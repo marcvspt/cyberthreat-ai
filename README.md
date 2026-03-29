@@ -53,7 +53,7 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 pnpm install
 ```
 
-1. Crea un archivo `.env` con las keys (opcionales, recomendadas para fallback backend):
+2. Crea un archivo `.env` con las keys (opcionales, recomendadas para fallback backend):
 
 ```env
 VIRUSTOTAL_API_KEY=your-virustotal-apikey
@@ -66,7 +66,7 @@ RATE_LIMIT_DURATION=60
 
 > Robtex ofrece API pública sin API key para el flujo actual.
 
-1. Ejecuta en desarrollo:
+3. Inicia el servidor de desarrollo:
 
 ```sh
 pnpm run dev #http://localhost:4321
@@ -153,13 +153,15 @@ Errores comunes (JSON):
 
 La fuente única de modelos está en `src/scripts/utils.ts` (`AI_MODELS`).
 
-Actualmente:
+Modelos actualmente permitidos:
 
 - `openrouter/auto`
 - `openrouter/free`
+- `liquid/lfm-2.5-1.2b-instruct-20260120:free`
 - `stepfun/step-3.5-flash:free`
+- `google/gemma-3-4b-it:free`
 
-## Estructura (resumen)
+## Estructura del proyecto
 
 ```text
 src/
@@ -173,13 +175,15 @@ src/
 │   ├── Header.astro
 │   ├── IoCInputField.tsx
 │   ├── IoCSearchForm.tsx
-│   ├── LoaderSpinner.tsx
 │   └── ModelSelector.tsx
 ├── hooks/
 │   ├── useAnalyzeIoC.ts
 │   ├── useApiKeys.ts
 │   └── useClickOutside.ts
+├── layouts/
+│   └── LayoutBase.astro
 ├── pages/
+│   ├── index.astro
 │   └── api/
 │       ├── ctai.ts
 │       └── health.ts
@@ -212,7 +216,7 @@ src/
 
 ## Stack
 
-- [Cubepath](https://cubepath.com)
+- [CubePath](https://cubepath.com)
 - [Astro](https://astro.build/)
 - [Preact](https://preactjs.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
@@ -229,4 +233,4 @@ src/
 - [Robtex](https://www.robtex.com/)
 - [GitHub Copilot](https://github.com/copilot/)
 
-Este proyecto está licenciado bajo los términos de la [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html).
+Este proyecto está licenciado bajo los términos de la [GNU General Public License v3.0](https://github.com/marcvspt/cyberthreat-ai/blob/master/LICENSE).
