@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import type { ModelSelectorProps } from '@/scripts/types.ts';
+import type { AiModel } from '@/scripts/types.ts';
 import { useClickOutside } from '@/hooks/useClickOutside.ts';
+
+type ModelSelectorProps = {
+    loading: boolean;
+    selectedModel: string;
+    onModelChange: (model: string) => void;
+    models: readonly AiModel[];
+};
 
 export default function ModelSelector({ loading, selectedModel, onModelChange, models }: ModelSelectorProps) {
     const [modelOpen, setModelOpen] = useState(false);

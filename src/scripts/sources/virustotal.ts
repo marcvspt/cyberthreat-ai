@@ -5,22 +5,19 @@ const VIRUSTOTAL_API_DOMAIN = 'https://www.virustotal.com/api/v3/domains'
 const VIRUSTOTAL_API_FILEHASH = 'https://www.virustotal.com/api/v3/files'
 
 export async function fetchVirusTotalIP(ip: string, apiKey?: string) {
-    const res = await fetchWithProviderGuard('VirusTotal', `${VIRUSTOTAL_API_IP}/${ip}`, {
-        headers: { 'x-apikey': apiKey }
-    })
+    const headers = apiKey ? { 'x-apikey': apiKey } : undefined
+    const res = await fetchWithProviderGuard('VirusTotal', `${VIRUSTOTAL_API_IP}/${ip}`, { headers })
     return res.json()
 }
 
 export async function fetchVirusTotalDomain(domain: string, apiKey?: string) {
-    const res = await fetchWithProviderGuard('VirusTotal', `${VIRUSTOTAL_API_DOMAIN}/${domain}`, {
-        headers: { 'x-apikey': apiKey }
-    })
+    const headers = apiKey ? { 'x-apikey': apiKey } : undefined
+    const res = await fetchWithProviderGuard('VirusTotal', `${VIRUSTOTAL_API_DOMAIN}/${domain}`, { headers })
     return res.json()
 }
 
 export async function fetchVirusTotalHash(hash: string, apiKey?: string) {
-    const res = await fetchWithProviderGuard('VirusTotal', `${VIRUSTOTAL_API_FILEHASH}/${hash}`, {
-        headers: { 'x-apikey': apiKey }
-    })
+    const headers = apiKey ? { 'x-apikey': apiKey } : undefined
+    const res = await fetchWithProviderGuard('VirusTotal', `${VIRUSTOTAL_API_FILEHASH}/${hash}`, { headers })
     return res.json()
 }

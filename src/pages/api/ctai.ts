@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { toClientError } from '@/scripts/errors.ts';
+import { toClientError } from '@/scripts/core/errors.ts';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import {
     RATE_LIMIT_POINTS,
@@ -15,7 +15,7 @@ import {
     allSourcesEmpty,
     createNoDataStream,
     createOpenRouterStream
-} from '@/scripts/ctai.ts'
+} from '@/scripts/core/ctai.ts'
 
 const OPENROUTER_API_KEY = import.meta.env.OPENROUTER_API_KEY
 const rateLimiter = new RateLimiterMemory({
@@ -30,8 +30,11 @@ export const GET = (async ({ request }) => {
 
     try {
         await rateLimiter.consume(`ctai:${clientIp}`, 1)
-    } catch (rejected: any) {
-        const retryAfterSeconds = Math.max(1, Math.ceil((rejected?.msBeforeNext ?? 1000) / 1000))
+    } catch (rejected: unknown) {
+        const msBeforeNext = rejected && typeof rejected === 'object' && 'msBeforeNext' in rejected
+            ? Number((rejected as Record<string, unknown>).msBeforeNext)
+            : 1000
+        const retryAfterSeconds = Math.max(1, Math.ceil(msBeforeNext / 1000))
 
         return new Response(JSON.stringify({
             error: "Too many requests",
@@ -68,7 +71,7 @@ export const GET = (async ({ request }) => {
 
         if (allSourcesEmpty(toolResult)) {
             const displayType = typeof toolResult?.type === 'string' ? toolResult.type : iocType
-            const stream = createNoDataStream(ioc, displayType, resolvedModel, toolResult.warnings)
+            const stream = createNoDataStream(ioc, displayType, resolvedModel, toolResult.warnings ?? [])
             return new Response(stream, { status: 200, headers: streamHeaders })
         }
 

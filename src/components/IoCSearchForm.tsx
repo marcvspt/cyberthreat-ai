@@ -1,8 +1,17 @@
-import { AVAILABLE_MODELS } from '@/scripts/models.ts';
+import { AVAILABLE_MODELS } from '@/scripts/catalog/models.ts';
 import ApiKeysSettingsButton from '@/components/ApiKeysSettingsButton.tsx';
 import IoCInputField from '@/components/IoCInputField.tsx';
+import IocTypeChips from '@/components/IocTypeChips.tsx';
 import ModelSelector from '@/components/ModelSelector.tsx';
-import type { IoCSearchFormProps } from '@/scripts/types.ts';
+
+type IoCSearchFormProps = {
+    loading: boolean;
+    onSubmit: (event: SubmitEvent) => void;
+    hasCustomKeys: boolean;
+    onOpenSettings: () => void;
+    selectedModel: string;
+    onModelChange: (model: string) => void;
+};
 
 export default function IoCSearchForm({ loading, onSubmit, hasCustomKeys, onOpenSettings, selectedModel, onModelChange }: IoCSearchFormProps) {
     return (
@@ -38,14 +47,8 @@ export default function IoCSearchForm({ loading, onSubmit, hasCustomKeys, onOpen
                         </button>
                     </div>
 
-                    <div className="flex flex-row justify-between mt-3">
-                        <div className="flex flex-wrap gap-2 text-xs">
-                            <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5">IPv4 / IPv6</span>
-                            <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5">Dominio</span>
-                            <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5">MD5</span>
-                            <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5">SHA1</span>
-                            <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5">SHA256</span>
-                        </div>
+                    <div className="mt-3 flex flex-row items-center justify-between gap-3">
+                        <IocTypeChips />
                         <ModelSelector
                             loading={loading}
                             selectedModel={selectedModel}

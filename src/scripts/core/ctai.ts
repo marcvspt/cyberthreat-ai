@@ -1,7 +1,7 @@
-import type { IoCType, ResolvedApiKeys, OpenRouterStreamParams, ErrorType } from '@/scripts/types.ts'
-import { ProviderError, toClientError } from '@/scripts/errors.ts'
-import { AI_MODELS } from '@/scripts/utils.ts'
-import { detectIocType } from '@/scripts/iocValidators.ts'
+import type { IoCType, ResolvedApiKeys, OpenRouterStreamParams, ErrorType, IocAnalysisResult, SourceWarning, CtiSourceResult } from '@/scripts/types.ts'
+import { ProviderError, toClientError } from '@/scripts/core/errors.ts'
+import { AI_MODELS } from '@/scripts/catalog/utils.ts'
+import { detectIocType } from '@/scripts/core/iocValidators.ts'
 import { analyzeIP } from '@/scripts/iocs/ip.ts'
 import { analyzeDomain } from '@/scripts/iocs/domain.ts'
 import { analyzeHash } from '@/scripts/iocs/hash.ts'
@@ -74,10 +74,10 @@ function buildDisplayModel(requestedModel: string, routedModel: string) {
     return routedModel || requestedModel
 }
 
-function buildPrompt(ioc: string, iocType: IoCType, toolResult: any) {
-    const warnings = toolResult?.warnings || []
+function buildPrompt(ioc: string, iocType: IoCType, toolResult: IocAnalysisResult) {
+    const warnings = toolResult.warnings || []
     const warningsText = warnings.length > 0
-        ? `\nNote: ${warnings.map((w: any) => w.message).join('; ')}`
+        ? `\nNote: ${warnings.map((w) => w.message).join('; ')}`
         : ''
 
     return [
@@ -102,12 +102,12 @@ function buildPrompt(ioc: string, iocType: IoCType, toolResult: any) {
     ].filter(line => line !== '').join('\n')
 }
 
-export function allSourcesEmpty(toolResult: any): boolean {
-    const sources: any[] = toolResult?.sources || []
+export function allSourcesEmpty(toolResult: IocAnalysisResult): boolean {
+    const sources: CtiSourceResult[] = toolResult.sources
     return sources.length > 0 && sources.every((s) => s.apiResponse === null)
 }
 
-export function createNoDataStream(ioc: string, iocDisplayType: string, model: string, warnings: any[]) {
+export function createNoDataStream(ioc: string, iocDisplayType: string, model: string, warnings: SourceWarning[]) {
     const encoder = new TextEncoder()
 
     return new ReadableStream<Uint8Array>({
@@ -196,8 +196,8 @@ export async function createOpenRouterStream({
     const encoder = new TextEncoder()
     const reader = response.body.getReader()
 
-    const warnings = (toolResult as any)?.warnings || []
-    const displayType = typeof (toolResult as any)?.type === 'string' ? (toolResult as any).type : iocType
+    const warnings = toolResult.warnings || []
+    const displayType = toolResult.type
 
     return new ReadableStream<Uint8Array>({
         async start(controller) {

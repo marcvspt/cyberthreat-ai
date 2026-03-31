@@ -21,12 +21,19 @@ export type SourceWarning = {
 
 export type CtiSourceRequest = {
     name: string;
-    fetch: () => Promise<any>;
+    fetch: () => Promise<unknown>;
 };
 
 export type CtiSourceResult = {
     name: string;
-    apiResponse: any;
+    apiResponse: unknown;
+};
+
+export type IocAnalysisResult = {
+    ioc: string;
+    type: string;
+    sources: CtiSourceResult[];
+    warnings?: SourceWarning[];
 };
 
 export type AnalyzeIoCMeta = {
@@ -40,34 +47,6 @@ export type IoCType = 'ip' | 'domain' | 'hash';
 
 export type HashAlgorithm = 'md5' | 'sha1' | 'sha256';
 
-export type IoCSearchFormProps = {
-    loading: boolean;
-    onSubmit: (event: any) => void;
-    hasCustomKeys: boolean;
-    onOpenSettings: () => void;
-    selectedModel: string;
-    onModelChange: (model: string) => void;
-};
-
-export type AIResponsePanelProps = {
-    data: string;
-    loading: boolean;
-    status: StreamStatus;
-    meta: AnalyzeIoCMeta | null;
-};
-
-export type ModelSelectorProps = {
-    loading: boolean;
-    selectedModel: string;
-    onModelChange: (model: string) => void;
-    models: readonly AiModel[];
-};
-
-export type ApiKeysSettingsButtonProps = {
-    hasCustomKeys: boolean;
-    onOpenSettings: () => void;
-};
-
 export type ResolvedApiKeys = {
     openRouterKey: string;
     userVTKey?: string;
@@ -78,7 +57,7 @@ export type ResolvedApiKeys = {
 export type OpenRouterStreamParams = {
     ioc: string;
     iocType: IoCType;
-    toolResult: unknown;
+    toolResult: IocAnalysisResult;
     apiKey: string;
     model: string;
 };

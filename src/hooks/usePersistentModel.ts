@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { DEFAULT_MODEL, MODEL_IDS } from '@/scripts/models.ts';
+import { DEFAULT_MODEL, MODEL_IDS } from '@/scripts/catalog/models.ts';
 
 const MODEL_STORAGE_KEY = 'ctai:selected-model';
 
