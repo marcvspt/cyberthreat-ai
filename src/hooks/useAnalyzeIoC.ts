@@ -1,8 +1,8 @@
 import { useState } from 'preact/hooks';
 import type { ApiKeys, AiModel, StreamStatus, AnalyzeIoCMeta } from '@/scripts/types.ts';
-import { AVAILABLE_MODELS } from '@/scripts/models.ts';
+import { AVAILABLE_MODELS } from '@/scripts/catalog/models.ts';
 import { usePersistentModel } from '@/hooks/usePersistentModel.ts';
-import { buildRequestHeaders, buildUiErrorMessage, parseSseEvents } from '@/scripts/ctaiClient.ts';
+import { buildRequestHeaders, buildUiErrorMessage, parseSseEvents } from '@/scripts/core/ctaiClient.ts';
 
 export type { AiModel, StreamStatus, AnalyzeIoCMeta };
 
@@ -13,9 +13,10 @@ export function useAnalyzeIoC(keys: ApiKeys) {
     const [status, setStatus] = useState<StreamStatus>('idle');
     const [meta, setMeta] = useState<AnalyzeIoCMeta | null>(null);
 
-    const handleSubmit = async (e: any) => {
+    const handleSubmit = async (e: SubmitEvent) => {
         e.preventDefault();
-        const formData = new FormData(e.target);
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
         const ioc = (formData.get('ioc-input') as string).trim();
 
         if (!ioc) {
@@ -104,14 +105,15 @@ export function useAnalyzeIoC(keys: ApiKeys) {
                     }
                 }
             }
-        } catch (error: any) {
-            setData(`Error: ${error.message}`);
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : 'Error desconocido';
+            setData(`Error: ${msg}`);
             setStatus('error');
         } finally {
             setLoading(false);
         }
 
-        e.target.reset();
+        form.reset();
     };
 
     return { data, loading, status, meta, selectedModel, setSelectedModel, handleSubmit };

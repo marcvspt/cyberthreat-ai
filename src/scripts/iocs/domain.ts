@@ -1,6 +1,6 @@
 import { fetchAllSources } from '@/scripts/iocs/fetcher.ts'
-import { fetchRobtexDomain } from '@/scripts/iocs/sources/robtex.ts'
-import { fetchVirusTotalDomain } from '@/scripts/iocs/sources/virustotal.ts'
+import { fetchRobtexDomain } from '@/scripts/sources/robtex'
+import { fetchVirusTotalDomain } from '@/scripts/sources/virustotal'
 
 const VIRUSTOTAL_API_KEY = import.meta.env.VIRUSTOTAL_API_KEY
 

@@ -1,4 +1,4 @@
-import { ProviderError } from '@/scripts/errors.ts'
+import { ProviderError } from '@/scripts/core/errors.ts'
 import { fetchWithProviderGuard } from '@/scripts/iocs/fetcher.ts'
 
 const ROBTEX_API_REPUTATION = 'https://freeapi.robtex.com/api/v1/domain_reputation'

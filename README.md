@@ -34,16 +34,16 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 ## Características actuales
 
 - Endpoint único de análisis en `/api/ctai`.
-- Orquestación modular del endpoint en `src/scripts/ctai.ts` (rate limit, resolución de IoC/modelo, stream SSE y ejecución por tipo).
-- Detección de tipo de IoC con **Zod** (`z.ipv4`, `z.ipv6`, `z.hostname`, `z.hash`) centralizada en `src/scripts/iocValidators.ts`.
+- Orquestación modular del endpoint en `src/scripts/core/ctai.ts` (rate limit, resolución de IoC/modelo, stream SSE y ejecución por tipo).
+- Detección de tipo de IoC con **Zod** (`z.ipv4`, `z.ipv6`, `z.hostname`, `z.hash`) centralizada en `src/scripts/core/iocValidators.ts`.
 - El campo **Tipo** en la UI muestra el subtipo exacto: `IPv4`, `IPv6`, `domain`, `hash/md5`, `hash/sha1`, `hash/sha256`.
-- Arquitectura de proveedores CTI separada en `src/scripts/iocs/sources/` (VirusTotal, AbuseIPDB, Robtex, PolySwarm), agnóstica al tipo de IoC.
+- Arquitectura de proveedores CTI separada en `src/scripts/sources/` (VirusTotal, AbuseIPDB, Robtex, PolySwarm), agnóstica al tipo de IoC.
 - Sistema de **advertencias por fuente**: si una API falla con clave inválida o sin datos, el análisis continúa con las demás fuentes y se informa en la UI sin cortar el flujo.
 - Streaming en tiempo real de la respuesta de IA (SSE).
 - El modelo mostrado en UI corresponde al **modelo ruteado real** por OpenRouter (cuando está disponible).
 - Render de markdown en la UI con `marked` + sanitización con `DOMPurify`.
 - Rate limit por IP en `/api/ctai` (configurable por variables de entorno).
-- Selector de modelo de IA desde UI (lista permitida en `src/scripts/models.ts`).
+- Selector de modelo de IA desde UI (lista permitida en `src/scripts/catalog/models.ts`).
 - Modal para configurar API keys del usuario (persistidas en localStorage).
 - Fallback automático a variables de entorno si no se envían keys por cabecera.
 
@@ -154,7 +154,7 @@ Errores comunes (JSON):
 
 ## Modelos permitidos
 
-La fuente única de modelos está en `src/scripts/models.ts` (`AVAILABLE_MODELS`).
+La fuente única de modelos está en `src/scripts/catalog/models.ts` (`AVAILABLE_MODELS`).
 
 Modelos actualmente permitidos:
 
@@ -179,12 +179,12 @@ src/
 │   ├── Header.astro
 │   ├── IoCInputField.tsx
 │   ├── IoCSearchForm.tsx
+│   ├── IocTypeChips.tsx
 │   └── ModelSelector.tsx
 ├── hooks/
 │   ├── useAnalyzeIoC.ts
 │   ├── useApiKeys.ts
-│   ├── useClickOutside.ts
-│   └── usePersistentModel.ts
+│   └── useClickOutside.ts
 ├── layouts/
 │   └── BaseLayout.astro
 ├── pages/
@@ -193,24 +193,27 @@ src/
 │       ├── ctai.ts
 │       └── health.ts
 ├── scripts/
-│   ├── ctai.ts
-│   ├── ctaiClient.ts
-│   ├── errors.ts
-│   ├── iocValidators.ts
-│   ├── models.ts
-│   ├── statusMessages.ts
-│   ├── types.ts
-│   ├── utils.ts
-│   └── iocs/
-│       ├── domain.ts
-│       ├── fetcher.ts
-│       ├── hash.ts
-│       ├── ip.ts
-│       └── sources/
-│           ├── abuseipdb.ts
-│           ├── polyswarm.ts
-│           ├── robtex.ts
-│           └── virustotal.ts
+│   ├── core/
+│   │   ├── ctai.ts
+│   │   ├── ctaiClient.ts
+│   │   ├── errors.ts
+│   │   └── iocValidators.ts
+│   ├── catalog/
+│   │   ├── data.ts
+│   │   ├── models.ts
+│   │   ├── statusMessages.ts
+│   │   └── utils.ts
+│   ├── iocs/
+│   │   ├── domain.ts
+│   │   ├── fetcher.ts
+│   │   ├── hash.ts
+│   │   └── ip.ts
+│   ├── sources/
+│   │   ├── abuseipdb.ts
+│   │   ├── polyswarm.ts
+│   │   ├── robtex.ts
+│   │   └── virustotal.ts
+│   └── types.ts
 └── styles/
     └── global.css
 ```
@@ -219,6 +222,7 @@ src/
 
 - [ ] Implementar test
 - [ ] Refactorizar y simplificar código
+- [ ] Documentar la API y todo lo que puede devolver
 - [ ] Enviar multiples IoCs en la misma consulta separandolos por coma, punto y coma, y/o salto de linea.
 - [ ] Enviar IoCs por lotes usando archivos **CSV** o dividos por salto
 - [x] Implementar `zod` para validación de datos

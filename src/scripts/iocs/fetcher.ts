@@ -1,4 +1,4 @@
-import { ProviderError } from '@/scripts/errors.ts'
+import { ProviderError } from '@/scripts/core/errors.ts'
 import type { CtiSourceRequest, CtiSourceResult, ErrorType } from '@/scripts/types.ts'
 
 export type SourceResult = CtiSourceResult

@@ -1,7 +1,7 @@
 import { fetchAllSources } from '@/scripts/iocs/fetcher.ts'
-import { fetchPolySwarmHash } from '@/scripts/iocs/sources/polyswarm.ts'
-import { detectHashType } from '@/scripts/iocValidators.ts'
-import { fetchVirusTotalHash } from '@/scripts/iocs/sources/virustotal.ts'
+import { fetchPolySwarmHash } from '@/scripts/sources/polyswarm'
+import { detectHashType } from '@/scripts/core/iocValidators.ts'
+import { fetchVirusTotalHash } from '@/scripts/sources/virustotal'
 
 const VIRUSTOTAL_API_KEY = import.meta.env.VIRUSTOTAL_API_KEY
 const POLYSWARM_API_KEY = import.meta.env.POLYSWARM_API_KEY

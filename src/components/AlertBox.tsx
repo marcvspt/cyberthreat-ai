@@ -8,6 +8,8 @@ type AlertLine = {
 type AlertBoxProps = {
     variant: AlertBoxVariant
     lines: AlertLine[]
+    role?: 'status' | 'alert'
+    ariaLive?: 'polite' | 'assertive' | 'off'
 }
 
 const STYLES: Record<AlertBoxVariant, { wrapper: string; title: string; detail: string }> = {
@@ -23,11 +25,11 @@ const STYLES: Record<AlertBoxVariant, { wrapper: string; title: string; detail: 
     }
 }
 
-export default function AlertBox({ variant, lines }: AlertBoxProps) {
+export default function AlertBox({ variant, lines, role, ariaLive }: AlertBoxProps) {
     const styles = STYLES[variant]
 
     return (
-        <div className={styles.wrapper}>
+        <div className={styles.wrapper} role={role} aria-live={ariaLive} aria-atomic="true">
             {lines.map((line, i) => (
                 <div key={i} className={i < lines.length - 1 ? 'mb-2' : ''}>
                     <p className={styles.title}>{line.title}</p>

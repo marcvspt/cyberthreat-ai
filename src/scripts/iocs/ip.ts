@@ -1,6 +1,6 @@
 import { fetchWithProviderGuard, fetchAllSources } from '@/scripts/iocs/fetcher.ts'
-import { fetchAbuseIPDBIP } from '@/scripts/iocs/sources/abuseipdb.ts'
-import { fetchVirusTotalIP } from '@/scripts/iocs/sources/virustotal.ts'
+import { fetchAbuseIPDBIP } from '@/scripts/sources/abuseipdb'
+import { fetchVirusTotalIP } from '@/scripts/sources/virustotal'
 
 const VIRUSTOTAL_API_KEY = import.meta.env.VIRUSTOTAL_API_KEY
 const ABUSEIPDB_API_KEY = import.meta.env.ABUSEIPDB_API_KEY

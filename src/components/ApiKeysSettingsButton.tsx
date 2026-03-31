@@ -1,4 +1,7 @@
-import type { ApiKeysSettingsButtonProps } from '@/scripts/types.ts';
+type ApiKeysSettingsButtonProps = {
+    hasCustomKeys: boolean;
+    onOpenSettings: () => void;
+};
 
 export default function ApiKeysSettingsButton({ hasCustomKeys, onOpenSettings }: ApiKeysSettingsButtonProps) {
     return (
