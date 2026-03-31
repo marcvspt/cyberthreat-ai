@@ -1,38 +1,13 @@
 import { useState } from 'preact/hooks';
 import type { ApiKeys, AiModel, StreamStatus, AnalyzeIoCMeta } from '@/scripts/types.ts';
-import { AI_MODELS } from '@/scripts/utils.ts';
+import { AVAILABLE_MODELS } from '@/scripts/models.ts';
+import { usePersistentModel } from '@/hooks/usePersistentModel.ts';
+import { buildRequestHeaders, buildUiErrorMessage, parseSseEvents } from '@/scripts/ctaiClient.ts';
 
 export type { AiModel, StreamStatus, AnalyzeIoCMeta };
 
-export const AVAILABLE_MODELS = AI_MODELS;
-
-export const DEFAULT_MODEL = AVAILABLE_MODELS[0].id;
-
-function parseSseEvents(chunk: string) {
-    return chunk
-        .split('\n\n')
-        .filter(Boolean)
-        .map((block) => {
-            const eventLine = block.split('\n').find((line) => line.startsWith('event:'));
-            const dataLines = block
-                .split('\n')
-                .filter((line) => line.startsWith('data:'))
-                .map((line) => line.slice(5).trim());
-
-            return {
-                event: eventLine ? eventLine.slice(6).trim() : 'message',
-                data: dataLines.join('')
-            };
-        });
-}
-
-function buildUiErrorMessage(payload: { error?: string; failedApi?: string }) {
-    const base = payload.error || 'No se pudo completar el análisis';
-    return payload.failedApi ? `${base} API afectada: ${payload.failedApi}.` : base;
-}
-
 export function useAnalyzeIoC(keys: ApiKeys) {
-    const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
+    const { selectedModel, setSelectedModel } = usePersistentModel();
     const [data, setData] = useState('');
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<StreamStatus>('idle');
@@ -56,11 +31,7 @@ export function useAnalyzeIoC(keys: ApiKeys) {
         setData('Preparando contexto y consultando la IA...\n');
 
         try {
-            const requestHeaders: Record<string, string> = {};
-            if (keys.openrouter) requestHeaders['X-OpenRouter-Key'] = keys.openrouter;
-            if (keys.virustotal) requestHeaders['X-VT-Key'] = keys.virustotal;
-            if (keys.abuseipdb) requestHeaders['X-AbuseIPDB-Key'] = keys.abuseipdb;
-            if (keys.polyswarm) requestHeaders['X-Polyswarm-Key'] = keys.polyswarm;
+            const requestHeaders = buildRequestHeaders(keys);
 
             const response = await fetch(`/api/ctai?ioc=${encodeURIComponent(ioc)}&model=${encodeURIComponent(selectedModel)}`, {
                 headers: requestHeaders
@@ -102,7 +73,7 @@ export function useAnalyzeIoC(keys: ApiKeys) {
                     if (event.event === 'meta') {
                         setMeta(payload);
                         setData('');
-                        setStatus('streaming');
+                        // no cambia status aquí: lo hará 'chunk' (streaming) o 'done' (sin datos)
                     }
 
                     if (event.event === 'model' && typeof payload.model === 'string') {

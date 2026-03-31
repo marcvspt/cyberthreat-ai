@@ -1,12 +1,17 @@
-import { useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ModelSelectorProps } from '@/scripts/types.ts';
 import { useClickOutside } from '@/hooks/useClickOutside.ts';
 
 export default function ModelSelector({ loading, selectedModel, onModelChange, models }: ModelSelectorProps) {
     const [modelOpen, setModelOpen] = useState(false);
+    const [isHydrated, setIsHydrated] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useClickOutside(dropdownRef, modelOpen, () => setModelOpen(false));
+
+    useEffect(() => {
+        setIsHydrated(true);
+    }, []);
 
     const currentModel = useMemo(
         () => models.find((model) => model.id === selectedModel) ?? models[0],
@@ -19,11 +24,11 @@ export default function ModelSelector({ loading, selectedModel, onModelChange, m
             <div ref={dropdownRef} className="relative">
                 <button
                     type="button"
-                    onClick={() => !loading && setModelOpen((open) => !open)}
-                    disabled={loading}
+                    onClick={() => !loading && isHydrated && setModelOpen((open) => !open)}
+                    disabled={loading || !isHydrated}
                     className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 pl-3 pr-2.5 py-1.5 text-xs text-secondary transition hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    <span>{currentModel.label}</span>
+                    <span>{isHydrated ? currentModel.label : 'Cargando modelo...'}</span>
                     <svg
                         viewBox="0 0 24 24"
                         className={`h-3 w-3 fill-none stroke-current stroke-2 transition-transform ${modelOpen ? 'rotate-180' : ''}`}

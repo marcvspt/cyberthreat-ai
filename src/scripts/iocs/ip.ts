@@ -1,59 +1,33 @@
-import { ProviderError } from '@/scripts/errors.ts'
-
-const VIRUSTOTAL_API_IP = "https://www.virustotal.com/api/v3/ip_addresses"
-const ABUSEIPDB_API = "https://api.abuseipdb.com/api/v2/check?ipAddress"
+import { fetchWithProviderGuard, fetchAllSources } from '@/scripts/iocs/fetcher.ts'
+import { fetchAbuseIPDBIP } from '@/scripts/iocs/sources/abuseipdb.ts'
+import { fetchVirusTotalIP } from '@/scripts/iocs/sources/virustotal.ts'
 
 const VIRUSTOTAL_API_KEY = import.meta.env.VIRUSTOTAL_API_KEY
 const ABUSEIPDB_API_KEY = import.meta.env.ABUSEIPDB_API_KEY
 
-async function fetchWithProviderGuard(provider: string, input: RequestInfo | URL, init?: RequestInit) {
-    let response: Response
-
-    try {
-        response = await fetch(input, init)
-    } catch {
-        throw new ProviderError('ioc', provider)
-    }
-
-    if (!response.ok) {
-        throw new ProviderError('ioc', provider)
-    }
-
-    return response
-}
-
 export async function analyzeIP(ip: string, vtKey?: string, abuseKey?: string) {
     const ioc = ip.trim().toLowerCase()
+    const displayType = ioc.includes(':') ? 'IPv6' : 'IPv4'
     const resolvedVTKey = vtKey || VIRUSTOTAL_API_KEY
     const resolvedAbuseKey = abuseKey || ABUSEIPDB_API_KEY
 
-    const [virustotalResponse, abuseipdbResponse] = await Promise.all([
-        fetchWithProviderGuard('VirusTotal', `${VIRUSTOTAL_API_IP}/${ioc}`, {
-            headers: { "x-apikey": resolvedVTKey }
-        }),
-        fetchWithProviderGuard('AbuseIPDB', `${ABUSEIPDB_API}=${ioc}&verbose`, {
-            headers: {
-                "Key": resolvedAbuseKey,
-                "Accept": "application/json"
-            }
-        })
-    ])
+    const sources = [
+        {
+            name: 'VirusTotal',
+            fetch: () => fetchVirusTotalIP(ioc, resolvedVTKey)
+        },
+        {
+            name: 'AbuseIPDB',
+            fetch: () => fetchAbuseIPDBIP(ioc, resolvedAbuseKey)
+        }
+    ]
 
-    const [virustotalData, abuseipdbData] = await Promise.all([
-        virustotalResponse.json(),
-        abuseipdbResponse.json()
-    ])
+    const { results, warnings } = await fetchAllSources(sources)
 
     return {
-        ioc: ioc,
-        type: "ip",
-        source1: {
-            name: "VirusTotal",
-            apiResponse: virustotalData
-        },
-        source2: {
-            name: "AbuseIPDB",
-            apiResponse: abuseipdbData
-        }
+        ioc,
+        type: displayType,
+        sources: results,
+        ...(warnings.length ? { warnings } : {})
     }
 }

@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import type { AIResponsePanelProps } from '@/scripts/types.ts';
 import { EMPTY_MESSAGES, getRandomMessage, getStatusMessage } from '@/scripts/statusMessages.ts';
+import AlertBox from '@/components/AlertBox.tsx';
 
 export default function AIResponsePanel({ data, loading, status, meta }: AIResponsePanelProps) {
     const [emptyMessage, setEmptyMessage] = useState(() => getRandomMessage(EMPTY_MESSAGES.idle));
@@ -42,11 +43,13 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
 
             <div className="space-y-4 px-5 py-5 text-gray-100">
                 {meta ? (
-                    <div className="grid gap-2 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-slate-200 md:grid-cols-3 place-items-center">
-                        <p><span className="text-secondary/85">IoC:</span> {meta.ioc}</p>
-                        <p><span className="text-secondary/85">Tipo:</span> {meta.type}</p>
-                        <p><span className="text-secondary/85">Modelo:</span> {meta.model}</p>
-                    </div>
+                    <>
+                        <div className="grid gap-2 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-slate-200 md:grid-cols-3 place-items-center">
+                            <p><span className="text-secondary/85">IoC:</span> {meta.ioc}</p>
+                            <p><span className="text-secondary/85">Tipo:</span> {meta.type}</p>
+                            <p><span className="text-secondary/85">Modelo:</span> {meta.model}</p>
+                        </div>
+                    </>
                 ) : null}
 
                 <div className="min-h-72 rounded-2xl border border-primary/25 bg-[linear-gradient(180deg,rgba(195,166,253,0.16),rgba(196,187,240,0.08))] p-5">
@@ -55,9 +58,40 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                         <span>{getStatusMessage(status)}</span>
                     </div>
 
-                    {data ? (
+                    {meta?.warnings && meta.warnings.length > 0 && (
+                        <div className="mb-4">
+                            <AlertBox
+                                variant="warning"
+                                lines={(() => {
+                                    const badKey = meta.warnings.filter((w) => w.reason === 'invalid_api_key')
+                                    const noData = meta.warnings.filter((w) => w.reason !== 'invalid_api_key')
+                                    const lines = []
+                                    if (badKey.length > 0) {
+                                        lines.push({
+                                            title: `${badKey.length} ${badKey.length === 1 ? 'fuente' : 'fuentes'} con API Key no válida`,
+                                            detail: badKey.map((w) => w.source).join(', ')
+                                        })
+                                    }
+                                    if (noData.length > 0) {
+                                        lines.push({
+                                            title: `${noData.length} ${noData.length === 1 ? 'fuente' : 'fuentes'} sin datos para este IoC`,
+                                            detail: noData.map((w) => w.source).join(', ')
+                                        })
+                                    }
+                                    return lines
+                                })()}
+                            />
+                        </div>
+                    )}
+
+                    {isError && data ? (
+                        <AlertBox
+                            variant="error"
+                            lines={[{ title: 'Error en el análisis', detail: data.replace(/^Error:\s*/i, '') }]}
+                        />
+                    ) : data ? (
                         <div
-                            className={`text-sm leading-7 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_a]:underline [&_strong]:font-semibold [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:border [&_pre]:p-4 ${isError ? 'rounded-xl border border-red-400/30 bg-red-950/25 px-4 py-3 text-red-200 [&_a]:text-red-300 [&_code]:bg-red-400/10 [&_pre]:border-red-400/25 [&_pre]:bg-red-950/35' : 'text-slate-100 [&_a]:text-secondary [&_code]:bg-white/10 [&_pre]:border-primary/25 [&_pre]:bg-slate-950/50'}`}
+                            className="text-sm leading-7 text-slate-100 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_a]:underline [&_a]:text-secondary [&_strong]:font-semibold [&_code]:rounded [&_code]:bg-white/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:border [&_pre]:border-primary/25 [&_pre]:bg-slate-950/50 [&_pre]:p-4"
                             dangerouslySetInnerHTML={{ __html: safeRenderedMarkdown }}
                         />
                     ) : (

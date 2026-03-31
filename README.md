@@ -16,7 +16,7 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 - [x] Endpoint para envío de IoCs
 - [x] Formulario de envío de IoCs
 - [x] Espacio para respuesta
-- [x] Creación de función para clasificar IoCs mediante regex
+- [x] Detección de tipo de IoC con validadores Zod (IPv4, IPv6, dominio, MD5, SHA1, SHA256)
 - [x] Conexión con API de [VirusTotal](https://virustotal.com)
 - [x] Conexión con API de [AbuseIPDB](https://abuseipdb.com)
 - [x] Conexión con API de [PolySwarm](https://polyswarm.network)
@@ -25,25 +25,27 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 - [x] Normalización de información
 - [x] Stream de datos de la respuesta de la IA
 - [x] Despliegue de la plataforma
-- [x] Rate limit de consultas  a la API
-- [x] Colocar API key propias de los usuarios para las herramientas utilizadas
-- [x] Permitir a los usuarios usar varios modelos de IA que quieran (**Por el momento solo las de OpenRouter**)
+- [x] Rate limit de consultas a la API
+- [x] Colocar API keys propias de los usuarios para las herramientas utilizadas
+- [x] Permitir a los usuarios usar varios modelos de IA
+- [x] Sistema de advertencias por fuente (API key inválida, sin datos)
+- [x] Errores específicos de OpenRouter (API key inválida, error de modelo, servicio no disponible)
 
 ## Características actuales
 
 - Endpoint único de análisis en `/api/ctai`.
 - Orquestación modular del endpoint en `src/scripts/ctai.ts` (rate limit, resolución de IoC/modelo, stream SSE y ejecución por tipo).
-- Detección de tipo de IoC por regex (IP, dominio o hash).
+- Detección de tipo de IoC con **Zod** (`z.ipv4`, `z.ipv6`, `z.hostname`, `z.hash`) centralizada en `src/scripts/iocValidators.ts`.
+- El campo **Tipo** en la UI muestra el subtipo exacto: `IPv4`, `IPv6`, `domain`, `hash/md5`, `hash/sha1`, `hash/sha256`.
+- Arquitectura de proveedores CTI separada en `src/scripts/iocs/sources/` (VirusTotal, AbuseIPDB, Robtex, PolySwarm), agnóstica al tipo de IoC.
+- Sistema de **advertencias por fuente**: si una API falla con clave inválida o sin datos, el análisis continúa con las demás fuentes y se informa en la UI sin cortar el flujo.
 - Streaming en tiempo real de la respuesta de IA (SSE).
 - El modelo mostrado en UI corresponde al **modelo ruteado real** por OpenRouter (cuando está disponible).
 - Render de markdown en la UI con `marked` + sanitización con `DOMPurify`.
 - Rate limit por IP en `/api/ctai` (configurable por variables de entorno).
-- Selector de modelo de IA desde UI (lista permitida).
+- Selector de modelo de IA desde UI (lista permitida en `src/scripts/models.ts`).
 - Modal para configurar API keys del usuario (persistidas en localStorage).
 - Fallback automático a variables de entorno si no se envían keys por cabecera.
-- Manejo de errores personalizado por etapa (`ioc` o `ai`) sin exponer mensajes crudos de proveedores.
-- Si falla una API de IoC, se corta el flujo y no se llama a la IA.
-- Respuesta de error con API afectada (`failedApi`) cuando aplica.
 
 ## Desplegar para desarrollo
 
@@ -91,7 +93,7 @@ pnpm run dev #http://localhost:4321
 - Ruta: `/api/ctai?ioc=<valor>&model=<modelo>`
 - Método: `GET`
 - Query params:
-  - `ioc` (requerido): indicador IP, dominio o hash.
+  - `ioc` (requerido): indicador IPv4, IPv6, dominio, MD5, SHA1 o SHA256.
   - `model` (opcional): modelo permitido; si no es válido se usa el default.
 
 - Headers opcionales para keys de usuario:
@@ -100,32 +102,33 @@ pnpm run dev #http://localhost:4321
   - `X-AbuseIPDB-Key`
   - `X-Polyswarm-Key`
 
-- Content-Type de salida:
-  - `text/event-stream`
+- Content-Type de salida: `text/event-stream`
 
 - Eventos SSE emitidos:
-  - `meta`: metadatos `{ ioc, type, model }`
-  - `model`: actualización de modelo ruteado `{ model }`
-  - `chunk`: fragmentos de texto `{ content }`
-  - `done`: fin del stream `{ done: true }`
-  - `error`: error en stream `{ error, stage, failedApi? }`
 
-Notas de `model`:
+| Evento  | Payload                                  | Descripción                                       |
+|---------|------------------------------------------|---------------------------------------------------|
+| `meta`  | `{ ioc, type, model, warnings? }`        | Metadatos iniciales; `warnings` si hay fuentes con advertencia |
+| `model` | `{ model }`                              | Modelo ruteado real por OpenRouter                |
+| `chunk` | `{ content }`                            | Fragmento de texto de la respuesta IA             |
+| `done`  | `{ done: true }`                         | Fin del stream                                    |
+| `error` | `{ error, stage, errorType }`            | Error durante el stream                           |
 
-- Si OpenRouter devuelve el modelo final de enrutamiento, se emite `model` y la UI muestra ese valor.
-- Si no lo devuelve, la UI mantiene el modelo solicitado originalmente.
+- `errorType` puede ser: `invalid_api_key`, `model_error`, `api_unavailable`, `not_found`, `unknown`.
 
 Ejemplo:
 
 ```bash
 curl "http://localhost:4321/api/ctai?ioc=1.2.3.4&model=openrouter/auto"
+curl "http://localhost:4321/api/ctai?ioc=2001:4860:4860::8888"
+curl "http://localhost:4321/api/ctai?ioc=44d88612fea8a8f36de82e1278abb02f"
 ```
 
 Comportamiento de errores:
 
-- Si falla una fuente de IoC (VirusTotal, AbuseIPDB, Robtex, PolySwarm), el backend responde error y no se invoca OpenRouter.
-- Si falla la IA (OpenRouter), se devuelve un error personalizado de etapa `ai`.
-- En ambos casos se evita exponer el mensaje crudo del proveedor y se informa `failedApi` cuando está disponible.
+- Si **todas** las fuentes CTI fallan críticamente, se corta el flujo y no se invoca OpenRouter.
+- Si **algunas** fuentes fallan, el análisis continúa con las disponibles y se emiten advertencias en `meta.warnings`.
+- Los errores de OpenRouter son específicos: clave inválida, error del modelo (p. ej. límite de contexto) o servicio no disponible.
 
 Errores comunes (JSON):
 
@@ -138,11 +141,11 @@ Errores comunes (JSON):
 ```
 
 ```json
-{ "error": "No se pudo completar la consulta de fuentes del IoC.", "stage": "ioc", "failedApi": "VirusTotal" }
+{ "error": "No se pudo completar la consulta de fuentes del IoC.", "stage": "ioc", "errorType": "unknown" }
 ```
 
 ```json
-{ "error": "No se pudo completar el análisis con la IA.", "stage": "ai", "failedApi": "OpenRouter" }
+{ "error": "La API Key de OpenRouter no es válida o no tiene permisos suficientes.", "stage": "ai", "errorType": "invalid_api_key" }
 ```
 
 ```json
@@ -151,7 +154,7 @@ Errores comunes (JSON):
 
 ## Modelos permitidos
 
-La fuente única de modelos está en `src/scripts/utils.ts` (`AI_MODELS`).
+La fuente única de modelos está en `src/scripts/models.ts` (`AVAILABLE_MODELS`).
 
 Modelos actualmente permitidos:
 
@@ -168,6 +171,7 @@ src/
 ├── assets/
 ├── components/
 │   ├── AIResponsePanel.tsx
+│   ├── AlertBox.tsx
 │   ├── ApiKeysModal.tsx
 │   ├── ApiKeysSettingsButton.tsx
 │   ├── App.tsx
@@ -179,7 +183,8 @@ src/
 ├── hooks/
 │   ├── useAnalyzeIoC.ts
 │   ├── useApiKeys.ts
-│   └── useClickOutside.ts
+│   ├── useClickOutside.ts
+│   └── usePersistentModel.ts
 ├── layouts/
 │   └── BaseLayout.astro
 ├── pages/
@@ -189,15 +194,23 @@ src/
 │       └── health.ts
 ├── scripts/
 │   ├── ctai.ts
-│   ├── data.ts
+│   ├── ctaiClient.ts
 │   ├── errors.ts
-│   ├── iocs/
-│   │   ├── domain.ts
-│   │   ├── hash.ts
-│   │   └── ip.ts
+│   ├── iocValidators.ts
+│   ├── models.ts
 │   ├── statusMessages.ts
 │   ├── types.ts
-│   └── utils.ts
+│   ├── utils.ts
+│   └── iocs/
+│       ├── domain.ts
+│       ├── fetcher.ts
+│       ├── hash.ts
+│       ├── ip.ts
+│       └── sources/
+│           ├── abuseipdb.ts
+│           ├── polyswarm.ts
+│           ├── robtex.ts
+│           └── virustotal.ts
 └── styles/
     └── global.css
 ```
@@ -208,7 +221,8 @@ src/
 - [ ] Refactorizar y simplificar código
 - [ ] Enviar multiples IoCs en la misma consulta separandolos por coma, punto y coma, y/o salto de linea.
 - [ ] Enviar IoCs por lotes usando archivos **CSV** o dividos por salto
-- [ ] Implementar `zod` para validación de datos
+- [x] Implementar `zod` para validación de datos
+- [x] Arquitectura modular por proveedor CTI (`sources/`)
 - [ ] Creación de cuentas de usuarios
 - [ ] Guardar historial de busquedas y respuestas
 - [ ] Cache de respuestas de las APIs y de las IAs para IoCs recientes
@@ -226,6 +240,7 @@ src/
 - [TypeScript](https://www.typescriptlang.org/)
 - [marked](https://github.com/markedjs/marked)
 - [DOMPurify](https://github.com/cure53/DOMPurify)
+- [Zod](https://zod.dev/)
 - [OpenRouter](https://openrouter.ai/)
 - [VirusTotal](https://www.virustotal.com/)
 - [AbuseIPDB](https://www.abuseipdb.com/)
