@@ -1,6 +1,7 @@
-import type { IoCType, ResolvedApiKeys, OpenRouterStreamParams } from '@/scripts/types.ts'
+import type { IoCType, ResolvedApiKeys, OpenRouterStreamParams, ErrorType } from '@/scripts/types.ts'
 import { ProviderError, toClientError } from '@/scripts/errors.ts'
-import { PATTERNS, AI_MODELS } from '@/scripts/utils.ts'
+import { AI_MODELS } from '@/scripts/utils.ts'
+import { detectIocType } from '@/scripts/iocValidators.ts'
 import { analyzeIP } from '@/scripts/iocs/ip.ts'
 import { analyzeDomain } from '@/scripts/iocs/domain.ts'
 import { analyzeHash } from '@/scripts/iocs/hash.ts'
@@ -49,13 +50,7 @@ export function getClientIp(request: Request) {
 }
 
 export function resolveIocType(ioc: string) {
-    for (const [type, pattern] of Object.entries(PATTERNS)) {
-        if (pattern.test(ioc)) {
-            return type as IoCType
-        }
-    }
-
-    return null
+    return detectIocType(ioc)
 }
 
 export function resolveModel(rawModel: string) {
@@ -79,7 +74,12 @@ function buildDisplayModel(requestedModel: string, routedModel: string) {
     return routedModel || requestedModel
 }
 
-function buildPrompt(ioc: string, iocType: IoCType, toolResult: unknown) {
+function buildPrompt(ioc: string, iocType: IoCType, toolResult: any) {
+    const warnings = toolResult?.warnings || []
+    const warningsText = warnings.length > 0
+        ? `\nNote: ${warnings.map((w: any) => w.message).join('; ')}`
+        : ''
+
     return [
         'You are a senior cyber threat intelligence analyst.',
         'Analyze the provided indicator of compromise and respond in Spanish.',
@@ -97,8 +97,26 @@ function buildPrompt(ioc: string, iocType: IoCType, toolResult: unknown) {
         '- <action>',
         `IoC: ${ioc}`,
         `IoC type: ${iocType}`,
-        `Tool output: ${JSON.stringify(toolResult)}`
-    ].join('\n')
+        `Tool output: ${JSON.stringify(toolResult)}`,
+        warningsText
+    ].filter(line => line !== '').join('\n')
+}
+
+export function allSourcesEmpty(toolResult: any): boolean {
+    const sources: any[] = toolResult?.sources || []
+    return sources.length > 0 && sources.every((s) => s.apiResponse === null)
+}
+
+export function createNoDataStream(ioc: string, iocDisplayType: string, model: string, warnings: any[]) {
+    const encoder = new TextEncoder()
+
+    return new ReadableStream<Uint8Array>({
+        start(controller) {
+            controller.enqueue(encoder.encode(createSseEvent('meta', { ioc, type: iocDisplayType, model, warnings })))
+            controller.enqueue(encoder.encode(createSseEvent('done', { done: true })))
+            controller.close()
+        }
+    })
 }
 
 export async function analyzeIocByType(iocType: IoCType, ioc: string, keys: ResolvedApiKeys) {
@@ -122,7 +140,7 @@ export async function createOpenRouterStream({
     model
 }: OpenRouterStreamParams) {
     if (!apiKey) {
-        throw new ProviderError('ai', 'OpenRouter')
+        throw new ProviderError('ai', 'OpenRouter', 'invalid_api_key')
     }
 
     let response: Response
@@ -154,7 +172,20 @@ export async function createOpenRouterStream({
     }
 
     if (!response.ok) {
-        throw new ProviderError('ai', 'OpenRouter')
+        let errorType: ErrorType = 'unknown'
+        if (response.status === 401 || response.status === 403) {
+            errorType = 'invalid_api_key'
+        } else if (response.status >= 500) {
+            errorType = 'api_unavailable'
+        }
+
+        let detail: string | undefined
+        try {
+            const body = await response.json()
+            detail = typeof body?.error?.message === 'string' ? body.error.message : undefined
+        } catch { /* ignorar si el cuerpo no es JSON */ }
+
+        throw new ProviderError('ai', 'OpenRouter', errorType, detail)
     }
 
     if (!response.body) {
@@ -165,12 +196,16 @@ export async function createOpenRouterStream({
     const encoder = new TextEncoder()
     const reader = response.body.getReader()
 
+    const warnings = (toolResult as any)?.warnings || []
+    const displayType = typeof (toolResult as any)?.type === 'string' ? (toolResult as any).type : iocType
+
     return new ReadableStream<Uint8Array>({
         async start(controller) {
             controller.enqueue(encoder.encode(createSseEvent('meta', {
                 ioc,
-                type: iocType,
-                model
+                type: displayType,
+                model,
+                ...(warnings.length ? { warnings } : {})
             })))
 
             let buffer = ''
@@ -207,6 +242,13 @@ export async function createOpenRouterStream({
                         }
 
                         const parsed = JSON.parse(payload)
+
+                        if (parsed?.error) {
+                            const msg = typeof parsed.error?.message === 'string'
+                                ? parsed.error.message
+                                : undefined
+                            throw new ProviderError('ai', 'OpenRouter', 'model_error', msg)
+                        }
                         const routedModel = typeof parsed?.model === 'string' ? parsed.model : ''
 
                         if (!routedModelSent && routedModel) {

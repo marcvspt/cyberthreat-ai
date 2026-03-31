@@ -13,13 +13,32 @@ export type ApiKeys = {
 
 export type StreamStatus = 'idle' | 'analyzing' | 'streaming' | 'done' | 'error';
 
+export type SourceWarning = {
+    source: string;
+    message: string;
+    reason?: ErrorType;
+};
+
+export type CtiSourceRequest = {
+    name: string;
+    fetch: () => Promise<any>;
+};
+
+export type CtiSourceResult = {
+    name: string;
+    apiResponse: any;
+};
+
 export type AnalyzeIoCMeta = {
     ioc: string;
     type: string;
     model: string;
+    warnings?: SourceWarning[];
 };
 
 export type IoCType = 'ip' | 'domain' | 'hash';
+
+export type HashAlgorithm = 'md5' | 'sha1' | 'sha256';
 
 export type IoCSearchFormProps = {
     loading: boolean;
@@ -63,3 +82,5 @@ export type OpenRouterStreamParams = {
     apiKey: string;
     model: string;
 };
+
+export type ErrorType = 'not_found' | 'api_unavailable' | 'invalid_api_key' | 'model_error' | 'unknown';

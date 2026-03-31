@@ -4,4 +4,14 @@
     --color-primary: #c3a6fd;
     --color-secondary: #C4BBF0;
     --color-background-dark: #121212;
+
+    --color-warning: #fbbf24;
+    --color-warning-bg: #451a03;
+    --color-warning-text: #fef3c7;
+    --color-warning-title: #fde68a;
+
+    --color-danger: #f87171;
+    --color-danger-bg: #450a0a;
+    --color-danger-text: #fee2e2;
+    --color-danger-title: #fca5a5;
 }

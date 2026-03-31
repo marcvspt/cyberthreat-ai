@@ -12,6 +12,8 @@ import {
     resolveModel,
     resolveRequestApiKeys,
     analyzeIocByType,
+    allSourcesEmpty,
+    createNoDataStream,
     createOpenRouterStream
 } from '@/scripts/ctai.ts'
 
@@ -63,6 +65,13 @@ export const GET = (async ({ request }) => {
 
     try {
         const toolResult = await analyzeIocByType(iocType, ioc, requestKeys)
+
+        if (allSourcesEmpty(toolResult)) {
+            const displayType = typeof toolResult?.type === 'string' ? toolResult.type : iocType
+            const stream = createNoDataStream(ioc, displayType, resolvedModel, toolResult.warnings)
+            return new Response(stream, { status: 200, headers: streamHeaders })
+        }
+
         const stream = await createOpenRouterStream({
             ioc,
             iocType,
