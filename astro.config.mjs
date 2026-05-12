@@ -7,6 +7,8 @@ import preact from '@astrojs/preact';
 
 import netlify from '@astrojs/netlify';
 
+import sitemap from '@astrojs/sitemap';
+
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
@@ -15,7 +17,7 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
 
-  integrations: [preact()],
+  integrations: [preact(), sitemap()],
 
   adapter: netlify(),
 
