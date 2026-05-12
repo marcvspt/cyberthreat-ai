@@ -1,10 +1,8 @@
+import { VIRUSTOTAL_API_KEY, POLYSWARM_API_KEY } from 'astro:env/server';
 import { fetchAllSources } from '@/scripts/iocs/fetcher.ts'
 import { fetchPolySwarmHash } from '@/scripts/sources/polyswarm'
 import { detectHashType } from '@/scripts/core/iocValidators.ts'
 import { fetchVirusTotalHash } from '@/scripts/sources/virustotal'
-
-const VIRUSTOTAL_API_KEY = import.meta.env.VIRUSTOTAL_API_KEY
-const POLYSWARM_API_KEY = import.meta.env.POLYSWARM_API_KEY
 
 export async function analyzeHash(hash: string, vtKey?: string, polyKey?: string) {
     const ioc = hash.trim().toLowerCase()

@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
+import { OPENROUTER_API_KEY, RATE_LIMIT_POINTS, RATE_LIMIT_DURATION } from 'astro:env/server';
 import { toClientError } from '@/scripts/core/errors.ts';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import {
-    RATE_LIMIT_POINTS,
-    RATE_LIMIT_DURATION,
+
     jsonHeaders,
     streamHeaders,
     jsonResponse,
@@ -17,10 +17,9 @@ import {
     createOpenRouterStream
 } from '@/scripts/core/ctai.ts'
 
-const OPENROUTER_API_KEY = import.meta.env.OPENROUTER_API_KEY
 const rateLimiter = new RateLimiterMemory({
-    points: RATE_LIMIT_POINTS,
-    duration: RATE_LIMIT_DURATION
+    points: Number(RATE_LIMIT_POINTS),
+    duration: Number(RATE_LIMIT_DURATION)
 })
 
 export const GET = (async ({ request }) => {
