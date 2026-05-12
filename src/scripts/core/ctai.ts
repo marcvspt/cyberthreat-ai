@@ -11,8 +11,6 @@ const OPENROUTER_SITE_REFERER = 'https://ctai.marcvspt.tech'
 const OPENROUTER_SITE_TITLE = 'CyberThreat AI'
 
 export const OPENROUTER_MODEL_DEFAULT = 'openrouter/free'
-export const RATE_LIMIT_POINTS = Number(import.meta.env.RATE_LIMIT_POINTS ?? 5)
-export const RATE_LIMIT_DURATION = Number(import.meta.env.RATE_LIMIT_DURATION ?? 60)
 
 const ALLOWED_MODELS = new Set(AI_MODELS.map((model) => model.id))
 

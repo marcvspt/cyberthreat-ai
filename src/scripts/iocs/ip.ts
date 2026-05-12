@@ -1,9 +1,7 @@
-import { fetchWithProviderGuard, fetchAllSources } from '@/scripts/iocs/fetcher.ts'
+import { VIRUSTOTAL_API_KEY, ABUSEIPDB_API_KEY } from 'astro:env/server';
+import { fetchAllSources } from '@/scripts/iocs/fetcher.ts'
 import { fetchAbuseIPDBIP } from '@/scripts/sources/abuseipdb'
 import { fetchVirusTotalIP } from '@/scripts/sources/virustotal'
-
-const VIRUSTOTAL_API_KEY = import.meta.env.VIRUSTOTAL_API_KEY
-const ABUSEIPDB_API_KEY = import.meta.env.ABUSEIPDB_API_KEY
 
 export async function analyzeIP(ip: string, vtKey?: string, abuseKey?: string) {
     const ioc = ip.trim().toLowerCase()
