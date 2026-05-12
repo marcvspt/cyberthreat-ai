@@ -19,6 +19,8 @@ export default defineConfig({
 
   adapter: netlify(),
 
+  site: 'https://ctai.marcvspt.tech',
+
   env: {
     schema: {
       VIRUSTOTAL_API_KEY: envField.string({
