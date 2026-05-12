@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 import preact from '@astrojs/preact';
 
-import node from '@astrojs/node';
+import netlify from '@astrojs/netlify';
 
 // https://astro.build/config
 export default defineConfig({
@@ -17,7 +17,5 @@ export default defineConfig({
 
   integrations: [preact()],
 
-  adapter: node({
-    mode: 'standalone'
-  }),
+  adapter: netlify(),
 });
