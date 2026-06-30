@@ -3,7 +3,7 @@ import { defineConfig, envField } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 
-import preact from '@astrojs/preact';
+import react from '@astrojs/react';
 
 import netlify from '@astrojs/netlify';
 
@@ -17,7 +17,7 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
 
-  integrations: [preact(), sitemap()],
+  integrations: [react(), sitemap()],
 
   adapter: netlify(),
 

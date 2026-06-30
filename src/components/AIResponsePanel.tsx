@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'preact/hooks';
-import DOMPurify from 'dompurify';
-import { marked } from 'marked';
+import { useEffect, useState } from 'react';
+import { Streamdown } from 'streamdown';
 import type { AnalyzeIoCMeta, StreamStatus } from '@/scripts/types.ts';
 import { EMPTY_MESSAGES, getRandomMessage, getStatusMessage } from '@/scripts/catalog/statusMessages.ts';
 import AlertBox from '@/components/AlertBox.tsx';
@@ -14,8 +13,6 @@ type AIResponsePanelProps = {
 
 export default function AIResponsePanel({ data, loading, status, meta }: AIResponsePanelProps) {
     const [emptyMessage, setEmptyMessage] = useState(() => getRandomMessage(EMPTY_MESSAGES.idle));
-    const renderedMarkdown = data ? (marked.parse(data, { async: false, breaks: true, gfm: true }) as string) : '';
-    const safeRenderedMarkdown = renderedMarkdown ? DOMPurify.sanitize(renderedMarkdown) : '';
     const isError = status === 'error';
     const titleId = 'analysis-results-title';
     const statusId = 'analysis-results-status';
@@ -120,9 +117,10 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                         <div
                             role="article"
                             tabIndex={0}
-                            className="text-sm leading-7 text-slate-100 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_a]:underline [&_a]:text-secondary [&_strong]:font-semibold [&_code]:rounded [&_code]:bg-white/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:border [&_pre]:border-primary/25 [&_pre]:bg-slate-950/50 [&_pre]:p-4"
-                            dangerouslySetInnerHTML={{ __html: safeRenderedMarkdown }}
-                        />
+                            className="prose prose-invert max-w-none text-sm leading-7 text-slate-100"
+                        >
+                            <Streamdown>{data}</Streamdown>
+                        </div>
                     ) : (
                         <div className="font-mono text-sm leading-7 whitespace-pre-wrap text-slate-100" role="status" aria-live="polite" aria-atomic="true">
                             <span className="italic text-slate-300/90">{emptyMessage}</span>
