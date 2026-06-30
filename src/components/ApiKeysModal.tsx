@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useState } from 'react';
 import type { ApiKeys } from '@/hooks/useApiKeys.ts';
 
 type ApiKeysModalProps = {
@@ -122,7 +122,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                                     placeholder={placeholder}
                                     className="h-11 w-full rounded-2xl border border-primary/30 bg-white/8 px-4 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-secondary focus:bg-white/10 focus:shadow-[0_0_0_3px_rgba(196,187,240,0.12)]"
                                     autoComplete="off"
-                                    spellcheck={false}
+                                    spellCheck={false}
                                 />
                                 <button
                                     type="button"

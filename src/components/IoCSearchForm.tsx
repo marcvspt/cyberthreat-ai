@@ -6,7 +6,7 @@ import ModelSelector from '@/components/ModelSelector.tsx';
 
 type IoCSearchFormProps = {
     loading: boolean;
-    onSubmit: (event: SubmitEvent) => void;
+    onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
     hasCustomKeys: boolean;
     onOpenSettings: () => void;
     selectedModel: string;

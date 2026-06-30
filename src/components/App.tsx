@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useState } from 'react';
 import { useAnalyzeIoC } from '@/hooks/useAnalyzeIoC.ts';
 import { useApiKeys } from '@/hooks/useApiKeys.ts';
 import IoCSearchForm from '@/components/IoCSearchForm.tsx';

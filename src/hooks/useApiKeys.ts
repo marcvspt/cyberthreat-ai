@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useState } from 'react';
 import type { ApiKeys } from '@/scripts/types.ts';
 
 export type { ApiKeys };

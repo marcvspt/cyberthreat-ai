@@ -1,4 +1,5 @@
-import { useState } from 'preact/hooks';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 import type { ApiKeys, AiModel, StreamStatus, AnalyzeIoCMeta } from '@/scripts/types.ts';
 import { AVAILABLE_MODELS } from '@/scripts/catalog/models.ts';
 import { usePersistentModel } from '@/hooks/usePersistentModel.ts';
@@ -13,9 +14,9 @@ export function useAnalyzeIoC(keys: ApiKeys) {
     const [status, setStatus] = useState<StreamStatus>('idle');
     const [meta, setMeta] = useState<AnalyzeIoCMeta | null>(null);
 
-    const handleSubmit = async (e: SubmitEvent) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const form = e.target as HTMLFormElement;
+        const form = e.currentTarget;
         const formData = new FormData(form);
         const ioc = (formData.get('ioc-input') as string).trim();
 

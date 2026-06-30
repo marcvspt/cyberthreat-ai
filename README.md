@@ -40,8 +40,8 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 - Arquitectura de proveedores CTI separada en `src/scripts/sources/` (VirusTotal, AbuseIPDB, Robtex, PolySwarm), agnóstica al tipo de IoC.
 - Sistema de **advertencias por fuente**: si una API falla con clave inválida o sin datos, el análisis continúa con las demás fuentes y se informa en la UI sin cortar el flujo.
 - Streaming en tiempo real de la respuesta de IA (SSE).
-- El modelo mostrado en UI corresponde al **modelo ruteado real** por OpenRouter (cuando está disponible).
-- Render de markdown en la UI con `marked` + sanitización con `DOMPurify`.
+- El modelo mostrado en UI corresponde al **modelo ruteado real** por `OpenRouter` (cuando está disponible).
+- Render de markdown en la UI con `Streamdown` durante el streaming de la respuesta de IA.
 - Rate limit por IP en `/api/ctai` (configurable por variables de entorno).
 - Selector de modelo de IA desde UI (lista permitida en `src/scripts/catalog/models.ts`).
 - Modal para configurar API keys del usuario (persistidas en localStorage).
@@ -236,14 +236,13 @@ src/
 
 - [CubePath](https://cubepath.com)
 - [Astro](https://astro.build/)
-- [Preact](https://preactjs.com/)
+- [React](https://react.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Tabler Icons](https://tabler.io/icons)
 - [SVGl](https://svgl.app/)
 - [Heroicons](https://heroicons.com/)
 - [TypeScript](https://www.typescriptlang.org/)
-- [marked](https://github.com/markedjs/marked)
-- [DOMPurify](https://github.com/cure53/DOMPurify)
+- [Streamdown](https://streamdown.ai/)
 - [Zod](https://zod.dev/)
 - [OpenRouter](https://openrouter.ai/)
 - [VirusTotal](https://www.virustotal.com/)
