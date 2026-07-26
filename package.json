@@ -2,6 +2,7 @@
   "name": "cyberthreat-ai",
   "type": "module",
   "version": "0.11.0",
+  "license": "GPL-3.0-only",
   "engines": {
     "node": ">=22.12.0"
   },

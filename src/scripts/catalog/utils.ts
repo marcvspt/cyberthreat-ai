@@ -3,7 +3,8 @@ import type { AiModel } from '@/scripts/types.ts';
 export const AI_MODELS: AiModel[] = [
     { id: 'openrouter/auto', label: 'Default - OpenRouter (Auto)', provider: 'OpenRouter' },
     { id: 'openrouter/free', label: 'OpenRouter (Free)', provider: 'OpenRouter' },
-    { id: 'liquid/lfm-2.5-1.2b-instruct-20260120:free', label: 'LiquidAI: LFM2.5-1.2B-Instruct (Free)', provider: 'Liquid' }
+    { id: 'poolside/laguna-xs-2.1:free', label: 'Poolside: Laguna XS 2.1 (free)', provider: 'Poolside' },
+    { id: 'inclusionai/ling-3.0-flash:free', label: 'NovitaAI: Ling-3.0-flash (free)', provider: 'NovitaAI' },
 ];
 
 export const PATTERNS = {
