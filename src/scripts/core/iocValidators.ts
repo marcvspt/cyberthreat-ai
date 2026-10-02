@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'astro/zod'
 import type { HashAlgorithm, IoCType } from '@/scripts/types.ts'
 
 const IOC_IP_SCHEMA = z.union([z.ipv4(), z.ipv6()])
