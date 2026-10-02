@@ -32,7 +32,7 @@ Analiza indicadores de compromiso (IoC) con múltiples fuentes de inteligencia d
 ### Requisitos
 
 - Node.js **22 o superior**.
-- pnpm disponible en el entorno.
+- `pnpm` disponible en el entorno.
 - Claves de los proveedores que quieras utilizar. Robtex no requiere clave en el flujo actual.
 
 ### Instalación y configuración
