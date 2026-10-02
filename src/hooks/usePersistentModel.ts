@@ -1,34 +1,33 @@
 import { useEffect, useState } from 'react';
-import { DEFAULT_MODEL, MODEL_IDS } from '@/scripts/catalog/models.ts';
+import { DEFAULT_MODEL, isAllowedModel } from '@/scripts/catalog/models.ts';
 
 const MODEL_STORAGE_KEY = 'ctai:selected-model';
 
-function getInitialModel() {
-    if (typeof window === 'undefined') {
-        return DEFAULT_MODEL;
-    }
-
-    const savedModel = window.localStorage.getItem(MODEL_STORAGE_KEY);
-    return savedModel && MODEL_IDS.has(savedModel) ? savedModel : DEFAULT_MODEL;
-}
-
 export function usePersistentModel() {
-    const [selectedModel, setSelectedModel] = useState<string>(getInitialModel);
+    const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
+        try {
+            const savedModel = window.localStorage.getItem(MODEL_STORAGE_KEY);
+            if (savedModel && isAllowedModel(savedModel)) {
+                setSelectedModel(savedModel);
+            }
+        } catch {
+            // La selección sigue disponible aunque localStorage esté bloqueado.
         }
-
-        window.localStorage.setItem(MODEL_STORAGE_KEY, selectedModel);
-    }, [selectedModel]);
+    }, []);
 
     const onModelChange = (model: string) => {
-        if (!MODEL_IDS.has(model)) {
+        if (!isAllowedModel(model)) {
             return;
         }
 
         setSelectedModel(model);
+        try {
+            window.localStorage.setItem(MODEL_STORAGE_KEY, model);
+        } catch {
+            // Conserva la selección en memoria si no se puede persistir.
+        }
     };
 
     return {

@@ -55,7 +55,7 @@ CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes
 pnpm install
 ```
 
-2. Crea un archivo `.env` con las keys (opcionales, recomendadas para fallback backend):
+2. Crea un archivo `.env` con todas las variables siguientes. El esquema de `astro.config.mjs` las declara obligatorias; las API keys sirven como fallback del backend cuando el usuario no envía claves propias:
 
 ```env
 VIRUSTOTAL_API_KEY=your-virustotal-apikey
@@ -73,6 +73,25 @@ RATE_LIMIT_DURATION=60
 ```sh
 pnpm run dev #http://localhost:4321
 ```
+
+## Sitemap y robots.txt
+
+El proyecto utiliza `@astrojs/sitemap`, registrado como `sitemap()` en `astro.config.mjs`. La opción `site` está configurada como `https://ctai.marcvspt.tech` y se utiliza para generar las URLs absolutas del sitemap durante el build.
+
+- `/sitemap-index.xml`: índice de los sitemaps generados.
+- `/sitemap-0.xml`: sitemap de páginas generado con la configuración actual.
+- `/robots.txt`: endpoint definido en `src/pages/robots.txt.ts`; permite el rastreo (`User-agent: *`, `Allow: /`) y anuncia la URL absoluta del índice usando `site`.
+- `src/layouts/BaseLayout.astro` incluye `<link rel="sitemap" href="/sitemap-index.xml" />` para facilitar su descubrimiento desde el HTML.
+
+La integración incluye la página de inicio (`/`). Los endpoints `/api/ctai`, `/api/health` y `/robots.txt` no son páginas y no se incluyen en el sitemap. El sitemap se genera al compilar; el servidor de desarrollo no lo genera.
+
+Para verificarlo:
+
+```sh
+pnpm run build
+```
+
+Revisa los archivos `sitemap-index.xml` y `sitemap-0.xml` en `dist/` y, después del despliegue, comprueba las rutas públicas `/sitemap-index.xml`, `/sitemap-0.xml` y `/robots.txt`. Si cambia el dominio, actualiza `site` en `astro.config.mjs` y `SITE_DATA.url` en `src/scripts/catalog/data.ts` para mantener coherentes el sitemap, robots y la URL canónica.
 
 ## API
 
@@ -154,15 +173,16 @@ Errores comunes (JSON):
 
 ## Modelos permitidos
 
-La fuente única de modelos está en `src/scripts/catalog/models.ts` (`AVAILABLE_MODELS`).
+La lista (`AVAILABLE_MODELS`), el modelo por defecto (`DEFAULT_MODEL`) y la validación (`isAllowedModel`) se centralizan en `src/scripts/catalog/models.ts` y se comparten entre la UI y el servidor. El modelo por defecto es `openrouter/auto`; también se utiliza cuando la API recibe un modelo no permitido o no recibe el parámetro `model`.
+
+La selección del usuario se recupera de localStorage después del montaje para mantener coherente la hidratación SSR. Si el modelo guardado ya no está permitido o el almacenamiento no está disponible, se utiliza el modelo por defecto. Si falla la persistencia de una nueva selección, esta se mantiene en memoria durante la sesión del componente.
 
 Modelos actualmente permitidos:
 
 - `openrouter/auto`
 - `openrouter/free`
-- `liquid/lfm-2.5-1.2b-instruct-20260120:free`
-- `stepfun/step-3.5-flash:free`
-- `google/gemma-3-4b-it:free`
+- `poolside/laguna-xs-2.1:free`
+- `inclusionai/ling-3.0-flash:free`
 
 ## Estructura del proyecto
 
@@ -188,6 +208,7 @@ src/
 ├── layouts/
 │   └── BaseLayout.astro
 ├── pages/
+│   ├── robots.txt.ts
 │   ├── index.astro
 │   └── api/
 │       ├── ctai.ts

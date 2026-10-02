@@ -1,6 +1,6 @@
 import type { IoCType, ResolvedApiKeys, OpenRouterStreamParams, ErrorType, IocAnalysisResult, SourceWarning, CtiSourceResult } from '@/scripts/types.ts'
 import { ProviderError, toClientError } from '@/scripts/core/errors.ts'
-import { AI_MODELS } from '@/scripts/catalog/utils.ts'
+import { DEFAULT_MODEL, isAllowedModel } from '@/scripts/catalog/models.ts'
 import { detectIocType } from '@/scripts/core/iocValidators.ts'
 import { analyzeIP } from '@/scripts/iocs/ip.ts'
 import { analyzeDomain } from '@/scripts/iocs/domain.ts'
@@ -9,10 +9,6 @@ import { analyzeHash } from '@/scripts/iocs/hash.ts'
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 const OPENROUTER_SITE_REFERER = 'https://ctai.marcvspt.tech'
 const OPENROUTER_SITE_TITLE = 'CyberThreat AI'
-
-export const OPENROUTER_MODEL_DEFAULT = 'openrouter/free'
-
-const ALLOWED_MODELS = new Set(AI_MODELS.map((model) => model.id))
 
 export const jsonHeaders = { 'Content-Type': 'application/json' }
 export const streamHeaders = {
@@ -52,7 +48,7 @@ export function resolveIocType(ioc: string) {
 }
 
 export function resolveModel(rawModel: string) {
-    return ALLOWED_MODELS.has(rawModel) ? rawModel : OPENROUTER_MODEL_DEFAULT
+    return isAllowedModel(rawModel) ? rawModel : DEFAULT_MODEL
 }
 
 export function resolveRequestApiKeys(request: Request, defaultOpenRouterApiKey: string) {
