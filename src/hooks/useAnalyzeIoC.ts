@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { ApiKeys, AiModel, StreamStatus, AnalyzeIoCMeta } from '@/scripts/types.ts';
-import { AVAILABLE_MODELS } from '@/scripts/catalog/models.ts';
 import { usePersistentModel } from '@/hooks/usePersistentModel.ts';
 import { buildRequestHeaders, buildUiErrorMessage, parseSseEvents } from '@/scripts/core/ctaiClient.ts';
 

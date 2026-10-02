@@ -2,255 +2,288 @@
 
 > Proyecto creado para la [Hackaton Midudev + CubePath 2026](https://github.com/midudev/hackaton-cubepath-2026), lee mi propuesta en la [Issue #178](https://github.com/midudev/hackaton-cubepath-2026/issues/178). Puedes probar el proyecto en [https://ctai.marcvspt.tech](https://ctai.marcvspt.tech).
 
-CyberThreat AI analiza indicadores de compromiso (IoC) usando múltiples fuentes de threat intelligence (VirusTotal, AbuseIPDB, PolySwarm y Robtex), y después consulta una IA vía OpenRouter para entregar un veredicto razonado en español.
+Analiza indicadores de compromiso (IoC) con múltiples fuentes de inteligencia de amenazas y obtiene un veredicto razonado en español mediante modelos de IA a través de OpenRouter.
 
-![alt text](image-2.png)
-![alt text](image-1.png)
+**[Probar la aplicación](https://ctai.marcvspt.tech)**
 
-***Use un VPS con Dokploy para el despliegue de esta plataforma CyberThreat AI. Desde que conozco Dokploy lo he querido probar más haya de una PoC simple por hobbie, y este Hakaton me dio la oportunidad de usarlo y jugar con esta herramienta***
+## Qué puedes hacer
 
-![alt text](image.png)
+- Consultar un IoC por análisis: IPv4, IPv6, dominio, MD5, SHA1 o SHA256.
+- Combinar información de VirusTotal, AbuseIPDB, Robtex y PolySwarm según el tipo de indicador.
+- Recibir la respuesta de IA en tiempo real mediante Server-Sent Events (SSE), con Markdown renderizado por Streamdown.
+- Seleccionar un modelo y ver el modelo que OpenRouter ha utilizado realmente, cuando lo informa.
+- Configurar claves propias desde la interfaz, con fallback a las claves del servidor.
+- Consultar advertencias por fuente cuando una consulta falla o no encuentra datos.
 
-## TODO
+| Indicador | Fuentes consultadas | Tipo mostrado en la UI |
+| --- | --- | --- |
+| IPv4 / IPv6 | VirusTotal, AbuseIPDB | `IPv4`, `IPv6` |
+| Dominio | VirusTotal, Robtex | `domain` |
+| MD5 / SHA1 / SHA256 | VirusTotal, PolySwarm | `hash/md5`, `hash/sha1`, `hash/sha256` |
 
-- [x] Endpoint para envío de IoCs
-- [x] Formulario de envío de IoCs
-- [x] Espacio para respuesta
-- [x] Detección de tipo de IoC con validadores Zod (IPv4, IPv6, dominio, MD5, SHA1, SHA256)
-- [x] Conexión con API de [VirusTotal](https://virustotal.com)
-- [x] Conexión con API de [AbuseIPDB](https://abuseipdb.com)
-- [x] Conexión con API de [PolySwarm](https://polyswarm.network)
-- [x] Conexión con API de [Robtex](https://robtex.com)
-- [x] Conexión con API de [OpenRouter](https://openrouter.ai)
-- [x] Normalización de información
-- [x] Stream de datos de la respuesta de la IA
-- [x] Despliegue de la plataforma
-- [x] Rate limit de consultas a la API
-- [x] Colocar API keys propias de los usuarios para las herramientas utilizadas
-- [x] Permitir a los usuarios usar varios modelos de IA
-- [x] Sistema de advertencias por fuente (API key inválida, sin datos)
-- [x] Errores específicos de OpenRouter (API key inválida, error de modelo, servicio no disponible)
+## Capturas
 
-## Características actuales
+![Interfaz de CyberThreat AI](image-2.png)
 
-- Endpoint único de análisis en `/api/ctai`.
-- Orquestación modular del endpoint en `src/scripts/core/ctai.ts` (rate limit, resolución de IoC/modelo, stream SSE y ejecución por tipo).
-- Detección de tipo de IoC con **Zod** (`z.ipv4`, `z.ipv6`, `z.hostname`, `z.hash`) centralizada en `src/scripts/core/iocValidators.ts`.
-- El campo **Tipo** en la UI muestra el subtipo exacto: `IPv4`, `IPv6`, `domain`, `hash/md5`, `hash/sha1`, `hash/sha256`.
-- Arquitectura de proveedores CTI separada en `src/scripts/sources/` (VirusTotal, AbuseIPDB, Robtex, PolySwarm), agnóstica al tipo de IoC.
-- Sistema de **advertencias por fuente**: si una API falla con clave inválida o sin datos, el análisis continúa con las demás fuentes y se informa en la UI sin cortar el flujo.
-- Streaming en tiempo real de la respuesta de IA (SSE).
-- El modelo mostrado en UI corresponde al **modelo ruteado real** por `OpenRouter` (cuando está disponible).
-- Render de markdown en la UI con `Streamdown` durante el streaming de la respuesta de IA.
-- Rate limit por IP en `/api/ctai` (configurable por variables de entorno).
-- Selector de modelo de IA desde UI (lista permitida en `src/scripts/catalog/models.ts`).
-- Modal para configurar API keys del usuario (persistidas en localStorage).
-- Fallback automático a variables de entorno si no se envían keys por cabecera.
+![Vista del análisis de un indicador](image-1.png)
 
-## Desplegar para desarrollo
+## Desarrollo local
 
-1. Instala dependencias:
+### Requisitos
 
-```sh
-pnpm install
-```
+- Node.js **22 o superior**.
+- pnpm disponible en el entorno.
+- Claves de los proveedores que quieras utilizar. Robtex no requiere clave en el flujo actual.
 
-2. Crea un archivo `.env` con las keys (opcionales, recomendadas para fallback backend):
+### Instalación y configuración
 
-```env
-VIRUSTOTAL_API_KEY=your-virustotal-apikey
-ABUSEIPDB_API_KEY=your-abuseipdb-apikey
-POLYSWARM_API_KEY=your-polyswarm-apikey
-OPENROUTER_API_KEY=your-openrouter-apikey
-RATE_LIMIT_POINTS=5
-RATE_LIMIT_DURATION=60
-```
+1. Instala las dependencias desde la raíz del repositorio:
 
-> Robtex ofrece API pública sin API key para el flujo actual.
+   ```sh
+   pnpm install
+   ```
 
-3. Inicia el servidor de desarrollo:
+2. Crea un archivo `.env` en la raíz y sustituye los valores de ejemplo:
 
-```sh
-pnpm run dev #http://localhost:4321
-```
+   ```env
+   VIRUSTOTAL_API_KEY=your-virustotal-apikey
+   ABUSEIPDB_API_KEY=your-abuseipdb-apikey
+   POLYSWARM_API_KEY=your-polyswarm-apikey
+   OPENROUTER_API_KEY=your-openrouter-apikey
+   RATE_LIMIT_POINTS=5
+   RATE_LIMIT_DURATION=60
+   ```
+
+   Las seis variables están declaradas como obligatorias en `env.schema`, dentro de `astro.config.mjs`, mediante `envField`. El backend las importa desde `astro:env/server`. Las claves enviadas por el usuario tienen prioridad sobre las del servidor; configurar claves en la UI no elimina los requisitos del esquema de entorno.
+
+3. Inicia el servidor:
+
+   ```sh
+   pnpm run dev
+   ```
+
+   Abre [localhost:4321](http://localhost:4321).
+
+### Comandos
+
+| Comando | Propósito |
+| --- | --- |
+| `pnpm install` | Instalar las dependencias |
+| `pnpm run dev` | Iniciar el servidor de desarrollo |
+| `pnpm run build` | Compilar con el adaptador configurado y generar el sitemap |
+| `pnpm run preview` | Ejecutar el comando de preview de Astro para la configuración actual |
+| `pnpm exec astro` | Acceder a la CLI de Astro |
+
+Actualmente no hay scripts de test, lint ni check configurados. La compilación no sustituye esas comprobaciones.
+
+## Configuración y persistencia
+
+### Claves de API
+
+El modal de configuración permite guardar claves de OpenRouter, VirusTotal, AbuseIPDB y PolySwarm. Se almacenan en el navegador bajo `ctai_api_keys` y se envían al backend mediante cabeceras durante el análisis. Son accesibles al JavaScript del mismo origen; tenlo en cuenta al usar un equipo compartido.
+
+Las claves del servidor permanecen en variables de entorno. No incluyas valores reales en archivos versionados, capturas ni registros. `.env` y `.env.production` están excluidos mediante `.gitignore`.
+
+### Modelos
+
+`src/scripts/catalog/models.ts` centraliza la lista (`AVAILABLE_MODELS`), el valor por defecto (`DEFAULT_MODEL`) y la validación (`isAllowedModel`) para la UI y el servidor.
+
+| ID permitido | Uso |
+| --- | --- |
+| `openrouter/auto` | Modelo por defecto |
+| `openrouter/free` | Selección de modelos gratuitos de OpenRouter |
+| `poolside/laguna-xs-2.1:free` | Modelo seleccionable |
+| `inclusionai/ling-3.0-flash:free` | Modelo seleccionable |
+
+Si `model` no se envía o no está permitido, el servidor utiliza `openrouter/auto`. Esta tabla refleja la lista configurada en el proyecto, no una garantía de disponibilidad del proveedor.
+
+La selección se guarda bajo `ctai:selected-model` y se recupera después del montaje para mantener coherente la hidratación SSR. Si el valor guardado no está permitido o falla la lectura, se conserva el default. Si falla la escritura, la selección sigue disponible en memoria durante la sesión del componente.
+
+### Rate limit
+
+`/api/ctai` usa `RateLimiterMemory` de `rate-limiter-flexible`, configurado en `src/pages/api/ctai.ts`:
+
+| Variable | Significado | Valor de ejemplo |
+| --- | --- | --- |
+| `RATE_LIMIT_POINTS` | Solicitudes permitidas por IP durante la ventana | `5` |
+| `RATE_LIMIT_DURATION` | Duración de la ventana en segundos | `60` |
+
+El contador se consume antes de validar el IoC, por lo que las solicitudes inválidas también cuentan. El estado reside en memoria de cada proceso: se reinicia con el proceso y no se comparte entre instancias.
+
+La IP se obtiene, en este orden, de `cf-connecting-ip`, `x-forwarded-for` o `x-real-ip`; si ninguna está presente se usa `unknown`. La configuración del proxy debe proporcionar cabeceras fiables para que el límite represente a cada cliente.
 
 ## API
 
-### 1) Health
+### Estado del servicio
 
-- Ruta: `/api/health`
-- Método: `GET`
-- Respuesta:
+```http
+GET /api/health
+```
+
+Devuelve `200` y `Content-Type: application/json`:
 
 ```json
-{
-  "status": "ok"
-}
+{ "status": "ok" }
 ```
 
-### 2) Análisis IoC + IA en stream
+Este endpoint confirma que la ruta responde; no comprueba las claves ni la disponibilidad de los proveedores externos.
 
-- Ruta: `/api/ctai?ioc=<valor>&model=<modelo>`
-- Método: `GET`
-- Query params:
-  - `ioc` (requerido): indicador IPv4, IPv6, dominio, MD5, SHA1 o SHA256.
-  - `model` (opcional): modelo permitido; si no es válido se usa el default.
+### Analizar un indicador
 
-- Headers opcionales para keys de usuario:
-  - `X-OpenRouter-Key`
-  - `X-VT-Key`
-  - `X-AbuseIPDB-Key`
-  - `X-Polyswarm-Key`
-
-- Content-Type de salida: `text/event-stream`
-
-- Eventos SSE emitidos:
-
-| Evento  | Payload                                  | Descripción                                       |
-|---------|------------------------------------------|---------------------------------------------------|
-| `meta`  | `{ ioc, type, model, warnings? }`        | Metadatos iniciales; `warnings` si hay fuentes con advertencia |
-| `model` | `{ model }`                              | Modelo ruteado real por OpenRouter                |
-| `chunk` | `{ content }`                            | Fragmento de texto de la respuesta IA             |
-| `done`  | `{ done: true }`                         | Fin del stream                                    |
-| `error` | `{ error, stage, errorType }`            | Error durante el stream                           |
-
-- `errorType` puede ser: `invalid_api_key`, `model_error`, `api_unavailable`, `not_found`, `unknown`.
-
-Ejemplo:
-
-```bash
-curl "http://localhost:4321/api/ctai?ioc=1.2.3.4&model=openrouter/auto"
-curl "http://localhost:4321/api/ctai?ioc=2001:4860:4860::8888"
-curl "http://localhost:4321/api/ctai?ioc=44d88612fea8a8f36de82e1278abb02f"
+```http
+GET /api/ctai?ioc=<indicador>&model=<modelo>
 ```
 
-Comportamiento de errores:
+| Parámetro | Obligatorio | Descripción |
+| --- | --- | --- |
+| `ioc` | Sí | IPv4, IPv6, dominio, MD5, SHA1 o SHA256 |
+| `model` | No | ID permitido; usa el default si falta o no es válido |
 
-- Si **todas** las fuentes CTI fallan críticamente, se corta el flujo y no se invoca OpenRouter.
-- Si **algunas** fuentes fallan, el análisis continúa con las disponibles y se emiten advertencias en `meta.warnings`.
-- Los errores de OpenRouter son específicos: clave inválida, error del modelo (p. ej. límite de contexto) o servicio no disponible.
+Puedes enviar claves propias mediante estas cabeceras opcionales:
 
-Errores comunes (JSON):
+| Cabecera | Proveedor |
+| --- | --- |
+| `X-OpenRouter-Key` | OpenRouter |
+| `X-VT-Key` | VirusTotal |
+| `X-AbuseIPDB-Key` | AbuseIPDB |
+| `X-Polyswarm-Key` | PolySwarm |
 
-```json
-{ "error": "Falta el parámetro de IoC" }
+Ejemplos con `curl` (`curl.exe` en PowerShell si `curl` es un alias):
+
+```sh
+curl -N --get "http://localhost:4321/api/ctai" --data-urlencode "ioc=1.2.3.4" --data-urlencode "model=openrouter/auto"
+curl -N --get "http://localhost:4321/api/ctai" --data-urlencode "ioc=2001:4860:4860::8888"
+curl -N --get "http://localhost:4321/api/ctai" --data-urlencode "ioc=44d88612fea8a8f36de82e1278abb02f"
 ```
 
-```json
-{ "error": "Tipo de IoC desconocido" }
-```
+`-N` evita el buffering de salida para mostrar los eventos a medida que llegan.
 
-```json
-{ "error": "No se pudo completar la consulta de fuentes del IoC.", "stage": "ioc", "errorType": "unknown" }
-```
+### Eventos del stream
 
-```json
-{ "error": "La API Key de OpenRouter no es válida o no tiene permisos suficientes.", "stage": "ai", "errorType": "invalid_api_key" }
-```
+Una respuesta de análisis correcta usa `200` y `Content-Type: text/event-stream`.
 
-```json
-{ "error": "Too many requests", "retryAfterSeconds": 12 }
-```
+| Evento | Payload | Significado |
+| --- | --- | --- |
+| `meta` | `{ ioc, type, model, warnings? }` | Indicador, subtipo, modelo solicitado y advertencias |
+| `model` | `{ model }` | Modelo real informado por OpenRouter |
+| `chunk` | `{ content }` | Fragmento de la respuesta de IA |
+| `done` | `{ done: true }` | Fin del análisis |
+| `error` | `{ error, stage, errorType? }` | Error después de iniciar el stream |
 
-## Modelos permitidos
+Cada advertencia tiene `{ source, message, reason? }`. `stage` identifica la etapa (`ioc`, `ai` o `unknown`); `errorType`, cuando está presente, puede ser `invalid_api_key`, `model_error`, `api_unavailable`, `not_found` o `unknown`.
 
-La fuente única de modelos está en `src/scripts/catalog/models.ts` (`AVAILABLE_MODELS`).
-
-Modelos actualmente permitidos:
-
-- `openrouter/auto`
-- `openrouter/free`
-- `liquid/lfm-2.5-1.2b-instruct-20260120:free`
-- `stepfun/step-3.5-flash:free`
-- `google/gemma-3-4b-it:free`
-
-## Estructura del proyecto
+Ejemplo de un evento:
 
 ```text
-src/
-├── assets/
-├── components/
-│   ├── AIResponsePanel.tsx
-│   ├── AlertBox.tsx
-│   ├── ApiKeysModal.tsx
-│   ├── ApiKeysSettingsButton.tsx
-│   ├── App.tsx
-│   ├── Footer.astro
-│   ├── Header.astro
-│   ├── IoCInputField.tsx
-│   ├── IoCSearchForm.tsx
-│   ├── IocTypeChips.tsx
-│   └── ModelSelector.tsx
-├── hooks/
-│   ├── useAnalyzeIoC.ts
-│   ├── useApiKeys.ts
-│   └── useClickOutside.ts
-├── layouts/
-│   └── BaseLayout.astro
-├── pages/
-│   ├── index.astro
-│   └── api/
-│       ├── ctai.ts
-│       └── health.ts
-├── scripts/
-│   ├── core/
-│   │   ├── ctai.ts
-│   │   ├── ctaiClient.ts
-│   │   ├── errors.ts
-│   │   └── iocValidators.ts
-│   ├── catalog/
-│   │   ├── data.ts
-│   │   ├── models.ts
-│   │   ├── statusMessages.ts
-│   │   └── utils.ts
-│   ├── iocs/
-│   │   ├── domain.ts
-│   │   ├── fetcher.ts
-│   │   ├── hash.ts
-│   │   └── ip.ts
-│   ├── sources/
-│   │   ├── abuseipdb.ts
-│   │   ├── polyswarm.ts
-│   │   ├── robtex.ts
-│   │   └── virustotal.ts
-│   └── types.ts
-└── styles/
-    └── global.css
+event: chunk
+data: {"content":"**Veredicto:** Sospechoso"}
+
 ```
 
-## Roadmap
+Las fuentes se consultan en paralelo. Si alguna devuelve datos, el análisis continúa y comunica las advertencias de las demás. Si todas fallan y hay un error crítico reconocido de proveedor, se devuelve un error antes de invocar OpenRouter. Si todas indican ausencia de datos, se emiten `meta` y `done` sin consultar la IA ni generar texto de análisis.
 
-- [ ] Implementar test
-- [ ] Refactorizar y simplificar código
-- [ ] Documentar la API y todo lo que puede devolver
-- [ ] Enviar multiples IoCs en la misma consulta separandolos por coma, punto y coma, y/o salto de linea.
-- [ ] Enviar IoCs por lotes usando archivos **CSV** o dividos por salto
-- [x] Implementar `zod` para validación de datos
-- [x] Arquitectura modular por proveedor CTI (`sources/`)
-- [ ] Creación de cuentas de usuarios
-- [ ] Guardar historial de busquedas y respuestas
-- [ ] Cache de respuestas de las APIs y de las IAs para IoCs recientes
-- [ ] Implementar más herramientas de información sobre IoCs
+### Errores HTTP
+
+Los errores anteriores al inicio del stream usan JSON. Un error durante el stream se comunica mediante el evento `error`; el estado HTTP ya es `200`.
+
+| Estado | Situación | Respuesta de ejemplo |
+| --- | --- | --- |
+| `400` | Falta el indicador | `{ "error": "Falta el parámetro de IoC" }` |
+| `400` | Indicador no válido | `{ "error": "Tipo de IoC desconocido" }` |
+| `429` | Límite de solicitudes superado | `{ "error": "Too many requests", "retryAfterSeconds": 12 }` |
+| `500` | Error de proveedores o de IA antes del stream | `{ "error": "…", "stage": "ioc", "errorType": "api_unavailable" }` |
+
+Las respuestas `429` incluyen `Retry-After`, `X-RateLimit-Limit` y `X-RateLimit-Window`. Los errores de IA pueden indicar clave inválida, servicio no disponible o un error de modelo comunicado durante el streaming.
+
+## Arquitectura
+
+Astro sirve la estructura del sitio y los endpoints. La página principal hidrata `App.tsx` con `client:load`; React gestiona el formulario, las claves, la selección de modelo y la respuesta.
+
+```text
+Formulario React
+    → GET /api/ctai: rate limit y validación del IoC/modelo
+    → Análisis por tipo: consultas paralelas a proveedores CTI
+    → OpenRouter: generación del veredicto en español
+    → SSE: metadatos, advertencias y respuesta progresiva en la UI
+```
+
+| Ruta | Responsabilidad |
+| --- | --- |
+| `src/components/` | Interfaz React y componentes Astro |
+| `src/hooks/` | Análisis, claves, modelo persistido y eventos de UI |
+| `src/layouts/BaseLayout.astro` | Layout, metadatos y canonical |
+| `src/pages/api/ctai.ts` | Endpoint de análisis y rate limit |
+| `src/pages/api/health.ts` | Endpoint de estado |
+| `src/pages/robots.txt.ts` | Reglas de rastreo y enlace al sitemap |
+| `src/scripts/core/ctai.ts` | Orquestación del análisis y producción de SSE |
+| `src/scripts/core/ctaiClient.ts` | Helpers del cliente para SSE, cabeceras y errores |
+| `src/scripts/core/iocValidators.ts` | Validación de indicadores con Zod |
+| `src/scripts/core/errors.ts` | Errores de proveedores y mensajes para el cliente |
+| `src/scripts/iocs/` | Análisis de IP, dominio y hash; ejecución de fuentes |
+| `src/scripts/sources/` | Integraciones con proveedores CTI |
+| `src/scripts/catalog/` | Modelos, datos del sitio y mensajes de estado |
+| `src/scripts/types.ts` | Tipos compartidos |
+| `src/styles/global.css` | Estilos globales y configuración de tema |
+
+Los imports internos usan los alias `@/pages/*`, `@/layouts/*`, `@/components/*`, `@/assets/*`, `@/styles/*`, `@/scripts/*` y `@/hooks/*`, configurados en `tsconfig.json`. Las instrucciones para agentes están en [AGENTS.md](AGENTS.md).
 
 ## Stack
 
-- [CubePath](https://cubepath.com)
-- [Astro](https://astro.build/)
-- [React](https://react.dev/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tabler Icons](https://tabler.io/icons)
-- [SVGl](https://svgl.app/)
-- [Heroicons](https://heroicons.com/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Streamdown](https://streamdown.ai/)
-- [Zod](https://zod.dev/)
-- [OpenRouter](https://openrouter.ai/)
-- [VirusTotal](https://www.virustotal.com/)
-- [AbuseIPDB](https://www.abuseipdb.com/)
-- [PolySwarm](https://polyswarm.io/)
-- [Robtex](https://www.robtex.com/)
-- [GitHub Copilot](https://github.com/copilot/)
+| Tecnología | Función |
+| --- | --- |
+| Astro + `@astrojs/react` | Sitio, SSR, endpoints e integración con React |
+| React + TypeScript | Interfaz interactiva y tipos |
+| Tailwind CSS 4 + `@tailwindcss/vite` | Estilos |
+| Zod, importado desde `astro/zod` | Validación de IoCs |
+| Streamdown | Renderizado de Markdown durante el streaming |
+| `rate-limiter-flexible` | Límite de consultas por IP |
+| `@astrojs/sitemap` | Generación del sitemap |
+| `@astrojs/netlify` | Adaptador configurado para el build |
+| OpenRouter | Acceso a modelos de IA |
+| VirusTotal, AbuseIPDB, PolySwarm y Robtex | Inteligencia de amenazas |
+
+Las versiones exactas y los requisitos de Node.js están en `package.json`; las dependencias resueltas están en `pnpm-lock.yaml`.
+
+Recursos visuales: [Tabler Icons](https://tabler.io/icons), [Heroicons](https://heroicons.com/) y [SVGl](https://svgl.app/). Herramienta de apoyo al desarrollo: [GitHub Copilot](https://github.com/copilot/).
+
+## Despliegue
+
+El proyecto se desplegó en un VPS de [CubePath](https://cubepath.com) gestionado con Dokploy. El hackathon fue una oportunidad para probar esta herramienta más allá de una prueba de concepto personal.
+
+![Panel de despliegue del proyecto](image.png)
+
+La configuración actual de `astro.config.mjs` utiliza `output: 'server'` y `@astrojs/netlify`. El adaptador determina los artefactos del build; la referencia al VPS describe el despliegue realizado. Antes de reproducirlo en otro entorno, alinea el adaptador y el runtime con el destino: este repositorio no incluye un Dockerfile ni una receta completa de despliegue en Dokploy.
+
+Configura las variables de entorno en el destino y conserva el soporte para streaming SSE en el proxy. Revisa también cómo se propaga la IP del cliente y si habrá varias instancias, ya que el rate limit actual no comparte estado.
+
+## Sitemap y robots.txt
+
+`@astrojs/sitemap` está registrado como `sitemap()` en `astro.config.mjs`. La opción `site` define `https://ctai.marcvspt.tech` como base de las URLs absolutas.
+
+| Ruta pública | Contenido |
+| --- | --- |
+| `/sitemap-index.xml` | Índice generado durante el build |
+| `/sitemap-0.xml` | Sitemap de páginas con la configuración actual |
+| `/robots.txt` | Permite el rastreo y anuncia la URL absoluta del índice |
+
+El sitemap incluye la página de inicio (`/`); los endpoints `/api/ctai`, `/api/health` y `/robots.txt` no se incluyen. `BaseLayout.astro` enlaza el índice con `<link rel="sitemap" href="/sitemap-index.xml" />`.
+
+Para comprobar la generación, ejecuta `pnpm run build` y revisa ambos XML en `dist/`. El servidor de desarrollo no genera estos archivos. Después del despliegue, comprueba las tres rutas públicas.
+
+Si cambia el dominio, actualiza `site` en `astro.config.mjs`, `SITE_DATA.url` en `src/scripts/catalog/data.ts` y el referer de OpenRouter en `src/scripts/core/ctai.ts`.
+
+## Roadmap
+
+- [ ] Añadir tests para validadores, errores y streaming.
+- [ ] Validar y normalizar las respuestas de los proveedores externos.
+- [ ] Incorporar cancelación y timeouts a las consultas.
+- [ ] Ampliar la documentación con ejemplos de respuesta de cada proveedor.
+- [ ] Analizar varios IoCs separados por comas, punto y coma o saltos de línea.
+- [ ] Importar lotes de indicadores desde CSV.
+- [ ] Añadir cuentas de usuario e historial de búsquedas y respuestas.
+- [ ] Incorporar caché de consultas y análisis recientes.
+- [ ] Integrar más fuentes de inteligencia de amenazas.
 
 ## Licencia
 
-Este proyecto está licenciado bajo los términos de la [GNU General Public License v3.0](https://github.com/marcvspt/cyberthreat-ai/blob/master/LICENSE).
+Distribuido bajo [GNU General Public License v3.0](LICENSE) (`GPL-3.0-only`).
