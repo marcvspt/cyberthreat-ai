@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AiModel } from '@/scripts/types.ts';
 import { useClickOutside } from '@/hooks/useClickOutside.ts';
@@ -27,7 +28,7 @@ export default function ModelSelector({ loading, selectedModel, onModelChange, m
 
     return (
         <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-400 shrink-0">Modelo:</span>
+            <span className="text-xs text-slate-400 shrink-0">{TEXTS_GENERAL.modelLabel}</span>
             <div ref={dropdownRef} className="relative">
                 <button
                     type="button"
@@ -35,7 +36,7 @@ export default function ModelSelector({ loading, selectedModel, onModelChange, m
                     disabled={loading || !isHydrated}
                     className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 pl-3 pr-2.5 py-1.5 text-xs text-secondary transition hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    <span>{isHydrated ? currentModel.label : 'Cargando modelo...'}</span>
+                    <span>{isHydrated ? currentModel.label : TEXTS_GENERAL.loadingModel}</span>
                     <svg
                         viewBox="0 0 24 24"
                         className={`h-3 w-3 fill-none stroke-current stroke-2 transition-transform ${modelOpen ? 'rotate-180' : ''}`}

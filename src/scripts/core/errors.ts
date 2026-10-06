@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import type { ErrorType } from '@/scripts/types.ts';
 
 export type AnalysisStage = 'ioc' | 'ai' | 'unknown';
@@ -19,14 +20,14 @@ export class ProviderError extends Error {
 export function toClientError(error: unknown) {
     if (error instanceof ProviderError) {
         if (error.stage === 'ioc') {
-            let baseError = 'No se pudo completar la consulta de fuentes del IoC.';
+            let baseError = TEXTS_GENERAL.iocAnalysisError;
 
             if (error.errorType === 'not_found') {
-                baseError = `El IoC no existe en los registros de ${error.provider}.`;
+                baseError = TEXTS_GENERAL.iocNotFound(error.provider);
             } else if (error.errorType === 'invalid_api_key') {
-                baseError = `La API Key de ${error.provider} es incorrecta.`;
+                baseError = TEXTS_GENERAL.invalidProviderKey(error.provider);
             } else if (error.errorType === 'api_unavailable') {
-                baseError = `La API de ${error.provider} no está disponible en este momento.`;
+                baseError = TEXTS_GENERAL.providerUnavailable(error.provider);
             }
 
             return {
@@ -37,17 +38,17 @@ export function toClientError(error: unknown) {
         }
 
         if (error.stage === 'ai') {
-            let baseError = 'No se pudo completar el análisis con la IA.';
+            let baseError = TEXTS_GENERAL.aiAnalysisError;
 
             if (error.errorType === 'invalid_api_key') {
-                baseError = `La API Key de ${error.provider} no es válida o no tiene permisos suficientes.`;
+                baseError = TEXTS_GENERAL.invalidAiKey(error.provider);
             } else if (error.errorType === 'model_error') {
                 const detail = error.message && !error.message.startsWith('Error in')
                     ? error.message
                     : null;
-                baseError = detail ?? 'El modelo devolvió un error inesperado durante el análisis.';
+                baseError = detail ?? TEXTS_GENERAL.modelError;
             } else if (error.errorType === 'api_unavailable') {
-                baseError = `El servicio de ${error.provider} no está disponible en este momento.`;
+                baseError = TEXTS_GENERAL.aiUnavailable(error.provider);
             }
 
             return {
@@ -59,7 +60,7 @@ export function toClientError(error: unknown) {
     }
 
     return {
-        error: 'No se pudo completar el análisis.',
+        error: TEXTS_GENERAL.analysisError,
         stage: 'unknown'
     };
 }

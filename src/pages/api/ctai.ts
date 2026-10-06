@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import type { APIRoute } from 'astro';
 import { OPENROUTER_API_KEY, RATE_LIMIT_POINTS, RATE_LIMIT_DURATION } from 'astro:env/server';
 import { toClientError } from '@/scripts/core/errors.ts';
@@ -36,7 +37,7 @@ export const GET = (async ({ request }) => {
         const retryAfterSeconds = Math.max(1, Math.ceil(msBeforeNext / 1000))
 
         return new Response(JSON.stringify({
-            error: "Too many requests",
+            error: TEXTS_GENERAL.rateLimitError,
             retryAfterSeconds
         }), {
             status: 429,
@@ -52,13 +53,13 @@ export const GET = (async ({ request }) => {
     const ioc = urlObject.searchParams.get("ioc")
 
     if (!ioc) {
-        return jsonResponse({ error: "Falta el parámetro de IoC" }, 400)
+        return jsonResponse({ error: TEXTS_GENERAL.missingIoc }, 400)
     }
 
     const iocType = resolveIocType(ioc)
 
     if (!iocType) {
-        return jsonResponse({ error: "Tipo de IoC desconocido" }, 400)
+        return jsonResponse({ error: TEXTS_GENERAL.invalidIoc }, 400)
     }
 
     const rawModel = urlObject.searchParams.get("model") ?? ""

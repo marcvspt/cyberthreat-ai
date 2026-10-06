@@ -1,4 +1,5 @@
 ---
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import { SITE_DATA, SOCIAL_DATA, currentYear } from "@/scripts/catalog/data.js";
 
 import LinkedInIcon from "@/assets/linkedin.svg";
@@ -24,7 +25,7 @@ import LinkIcon from "@/assets/link.svg";
     >
         <div class="flex flex-col items-center text-center">
             <h2 class="text-xl font-bold text-wrap">
-                Hackaton Midudev - CubePath
+                {TEXTS_GENERAL.hackathonTitle}
             </h2>
             <p class="text-balance mt-4 max-w-xl">
                 {SITE_DATA.description}
@@ -35,20 +36,20 @@ import LinkIcon from "@/assets/link.svg";
                     SOCIAL_DATA.map((social) => {
                         return (
                             <a
-                                id={`link-${social.name}`}
+                                id={`link-${social.id}`}
                                 href={social.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label={social.name}
                                 class="hover:text-secondary/90 transition duration-100 ease-in-out"
                             >
-                                {social.name === "LinkedIn" && <LinkedInIcon />}
-                                {social.name === "GitHub" && <GitHubIcon />}
-                                {social.name === "HackTheBox" && (
+                                {social.id === "linkedin" && <LinkedInIcon />}
+                                {social.id === "github" && <GitHubIcon />}
+                                {social.id === "hackthebox" && (
                                     <HackTheBoxIcon />
                                 )}
-                                {social.name === "X/Twitter" && <XIcon />}
-                                {social.name === "Contactame" && <MailIcon />}
+                                {social.id === "x" && <XIcon />}
+                                {social.id === "email" && <MailIcon />}
                             </a>
                         );
                     })
@@ -56,7 +57,7 @@ import LinkIcon from "@/assets/link.svg";
             </div>
         </div>
         <div class="w-full md:min-w-100">
-            <h2 class="text-xl font-bold text-center">Powered by</h2>
+            <h2 class="text-xl font-bold text-center">{TEXTS_GENERAL.poweredBy}</h2>
             <ul class="powered-grid mt-4">
                 <li class="justify-self-center">
                     <a
@@ -66,7 +67,7 @@ import LinkIcon from "@/assets/link.svg";
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <LinkIcon />
-                        <span>Cubepath</span>
+                        <span>{TEXTS_GENERAL.brands.cubepath}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
@@ -77,7 +78,7 @@ import LinkIcon from "@/assets/link.svg";
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <AstroIcon />
-                        <span>Astro</span>
+                        <span>{TEXTS_GENERAL.brands.astro}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
@@ -88,7 +89,7 @@ import LinkIcon from "@/assets/link.svg";
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <ReactIcon />
-                        <span>React</span>
+                        <span>{TEXTS_GENERAL.brands.react}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
@@ -99,7 +100,7 @@ import LinkIcon from "@/assets/link.svg";
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <TailwindIcon />
-                        <span>Tailwind CSS</span>
+                        <span>{TEXTS_GENERAL.brands.tailwind}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
@@ -110,7 +111,7 @@ import LinkIcon from "@/assets/link.svg";
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <OpenRouterIcon />
-                        <span>OpenRouter</span>
+                        <span>{TEXTS_GENERAL.brands.openrouter}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
@@ -121,7 +122,7 @@ import LinkIcon from "@/assets/link.svg";
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <VirusTotalIcon />
-                        <span>VirusTotal</span>
+                        <span>{TEXTS_GENERAL.brands.virustotal}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
@@ -132,7 +133,7 @@ import LinkIcon from "@/assets/link.svg";
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <LinkIcon />
-                        <span>AbuseIPDB</span>
+                        <span>{TEXTS_GENERAL.brands.abuseipdb}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
@@ -143,7 +144,7 @@ import LinkIcon from "@/assets/link.svg";
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <LinkIcon />
-                        <span>PolySwarm</span>
+                        <span>{TEXTS_GENERAL.brands.polyswarm}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
@@ -154,7 +155,7 @@ import LinkIcon from "@/assets/link.svg";
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <LinkIcon />
-                        <span>Robtex</span>
+                        <span>{TEXTS_GENERAL.brands.robtex}</span>
                     </a>
                 </li>
             </ul>
@@ -162,12 +163,12 @@ import LinkIcon from "@/assets/link.svg";
     </article>
 
     <div class="text-center">
-        © {currentYear}. Este proyecto está licenciado bajo los términos de la <a
+        © {currentYear}. {TEXTS_GENERAL.licenseNotice} <a
             href="https://github.com/marcvspt/cyberthreat-ai/blob/master/LICENSE"
             target="_blank"
             rel="noopener noreferrer"
             class="hover:text-secondary/90 transition duration-100 ease-in-out"
-            ><strong>GNU General Public License v3.0</strong></a
+            ><strong>{TEXTS_GENERAL.licenseName}</strong></a
         >.
     </div>
 </footer>

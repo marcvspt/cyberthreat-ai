@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import type { ApiKeys } from '@/scripts/types.ts';
 
 type SseEvent = {
@@ -24,7 +25,7 @@ export function parseSseEvents(chunk: string): SseEvent[] {
 }
 
 export function buildUiErrorMessage(payload: { error?: string }) {
-    return payload.error || 'No se pudo completar el análisis';
+    return payload.error || TEXTS_GENERAL.clientAnalysisError;
 }
 
 export function buildRequestHeaders(keys: ApiKeys) {

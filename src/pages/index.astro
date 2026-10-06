@@ -1,17 +1,18 @@
 ---
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import BaseLayout from "@/layouts/BaseLayout.astro";
 
 import App from "@/components/App.tsx";
 ---
 
-<BaseLayout title="Inicio">
+<BaseLayout title={TEXTS_GENERAL.homeTitle}>
 	<main class="py-8">
 		<h1 class="text-center text-wrap text-3xl text-secondary font-semibold">
-			¡Comienza tu <span class="text-primary font-bold"
-				>investigación de indicadores</span
-			> de compromiso a través de <span class="text-primary font-bold"
-				>modelos LLM</span
-			>!
+			{TEXTS_GENERAL.heroStart}<span class="text-primary font-bold"
+				>{TEXTS_GENERAL.heroIndicators}</span
+			>{TEXTS_GENERAL.heroBridge}<span class="text-primary font-bold"
+				>{TEXTS_GENERAL.heroModels}</span
+			>{TEXTS_GENERAL.heroEnd}
 		</h1>
 		<App client:load />
 	</main>

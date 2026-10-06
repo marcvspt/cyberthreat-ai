@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts'
 import { ProviderError } from '@/scripts/core/errors.ts'
 import type { CtiSourceRequest, CtiSourceResult, ErrorType } from '@/scripts/types.ts'
 
@@ -37,11 +38,11 @@ export async function fetchWithProviderGuard(
 
 function warningMessageFor(name: string, reason: unknown): string {
     if (reason instanceof ProviderError) {
-        if (reason.errorType === 'not_found') return `No se encontraron datos en ${name}`
-        if (reason.errorType === 'invalid_api_key') return `API Key incorrecta para ${name}`
-        if (reason.errorType === 'api_unavailable') return `${name} no está disponible en este momento`
+        if (reason.errorType === 'not_found') return TEXTS_GENERAL.sourceNotFound(name)
+        if (reason.errorType === 'invalid_api_key') return TEXTS_GENERAL.sourceInvalidKey(name)
+        if (reason.errorType === 'api_unavailable') return TEXTS_GENERAL.sourceUnavailable(name)
     }
-    return `Error desconocido en ${name}`
+    return TEXTS_GENERAL.sourceUnknownError(name)
 }
 
 export async function fetchAllSources(sources: SourceRequest[]): Promise<{

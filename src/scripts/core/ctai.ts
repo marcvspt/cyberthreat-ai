@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import type { IoCType, ResolvedApiKeys, OpenRouterStreamParams, ErrorType, IocAnalysisResult, SourceWarning, CtiSourceResult } from '@/scripts/types.ts'
 import { ProviderError, toClientError } from '@/scripts/core/errors.ts'
 import { DEFAULT_MODEL, isAllowedModel } from '@/scripts/catalog/models.ts'
@@ -122,7 +123,7 @@ export async function analyzeIocByType(iocType: IoCType, ioc: string, keys: Reso
         case 'hash':
             return analyzeHash(ioc, keys.userVTKey, keys.userPolyKey)
         default:
-            throw new Error('Tipo de IoC no soportado')
+            throw new Error(TEXTS_GENERAL.unsupportedIoc)
     }
 }
 
@@ -183,7 +184,7 @@ export async function createOpenRouterStream({
     }
 
     if (!response.body) {
-        throw new Error('Respuesta sin cuerpo de OpenRouter')
+        throw new Error(TEXTS_GENERAL.emptyOpenRouterResponse)
     }
 
     const decoder = new TextDecoder()

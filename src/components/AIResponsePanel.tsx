@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import { useEffect, useState } from 'react';
 import { Streamdown } from 'streamdown';
 import type { AnalyzeIoCMeta, StreamStatus } from '@/scripts/types.ts';
@@ -45,10 +46,10 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
         >
             <header className="flex items-center justify-between border-b border-primary/20 bg-primary/10 px-5 py-4">
                 <div>
-                    <h2 id={titleId} className="text-lg font-semibold text-white">Resultados del análisis</h2>
+                    <h2 id={titleId} className="text-lg font-semibold text-white">{TEXTS_GENERAL.resultsTitle}</h2>
                 </div>
                 <span className="rounded-full border border-secondary/35 bg-secondary/15 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-secondary">
-                    {status}
+                    {TEXTS_GENERAL.statusLabels[status]}
                 </span>
             </header>
 
@@ -57,15 +58,15 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                     <>
                         <dl className="grid gap-2 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-slate-200 md:grid-cols-3 place-items-center">
                             <div className="text-center">
-                                <dt className="text-secondary/85"><strong>IoC:</strong></dt>
+                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.resultIocLabel}</strong></dt>
                                 <dd className="break-all">{meta.ioc}</dd>
                             </div>
                             <div className="text-center">
-                                <dt className="text-secondary/85"><strong>Tipo:</strong></dt>
+                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.resultTypeLabel}</strong></dt>
                                 <dd className="break-all">{meta.type}</dd>
                             </div>
                             <div className="text-center">
-                                <dt className="text-secondary/85"><strong>Modelo:</strong></dt>
+                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.resultModelLabel}</strong></dt>
                                 <dd className="break-all">{meta.model}</dd>
                             </div>
                         </dl>
@@ -90,13 +91,13 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                                     const lines = []
                                     if (badKey.length > 0) {
                                         lines.push({
-                                            title: `${badKey.length} ${badKey.length === 1 ? 'fuente' : 'fuentes'} con API Key no válida`,
+                                            title: TEXTS_GENERAL.invalidKeySources(badKey.length),
                                             detail: badKey.map((w) => w.source).join(', ')
                                         })
                                     }
                                     if (noData.length > 0) {
                                         lines.push({
-                                            title: `${noData.length} ${noData.length === 1 ? 'fuente' : 'fuentes'} sin datos para este IoC`,
+                                            title: TEXTS_GENERAL.noDataSources(noData.length),
                                             detail: noData.map((w) => w.source).join(', ')
                                         })
                                     }
@@ -111,7 +112,7 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                             variant="error"
                             role="alert"
                             ariaLive="assertive"
-                            lines={[{ title: 'Error en el análisis', detail: data.replace(/^Error:\s*/i, '') }]}
+                            lines={[{ title: TEXTS_GENERAL.analysisErrorTitle, detail: data.startsWith(TEXTS_GENERAL.errorPrefix) ? data.slice(TEXTS_GENERAL.errorPrefix.length).trimStart() : data }]}
                         />
                     ) : data ? (
                         <div

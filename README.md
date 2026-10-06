@@ -197,6 +197,14 @@ Las respuestas `429` incluyen `Retry-After`, `X-RateLimit-Limit` y `X-RateLimit-
 
 ## Arquitectura
 
+### Textos de la aplicación
+
+`src/scripts/catalog/texts.ts` exporta `TEXTS_GENERAL`, el catálogo compartido por Astro, React y el backend. Reúne los textos de interfaz y accesibilidad, metadatos, etiquetas de modelos, estados, errores y advertencias. Los mensajes con nombres de proveedores o cantidades se resuelven mediante funciones con parámetros tipados.
+
+Los identificadores de eventos, modelos, proveedores y almacenamiento permanecen independientes de las etiquetas visibles. Esta extracción prepara un futuro i18n; todavía no implementa traducciones ni selección de idioma. El prompt y el Markdown generado por la IA se mantienen fuera del catálogo, al igual que la documentación del repositorio.
+
+### Flujo y módulos
+
 Astro sirve la estructura del sitio y los endpoints. La página principal hidrata `App.tsx` con `client:load`; React gestiona el formulario, las claves, la selección de modelo y la respuesta.
 
 ```text

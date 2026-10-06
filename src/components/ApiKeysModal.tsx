@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import { useEffect, useState } from 'react';
 import type { ApiKeys } from '@/hooks/useApiKeys.ts';
 
@@ -11,27 +12,27 @@ type ApiKeysModalProps = {
 const KEY_CONFIG = [
     {
         id: 'openrouter' as const,
-        label: 'OpenRouter',
-        placeholder: 'sk-or-...',
-        hint: 'Requerida para el análisis de IA',
+        label: TEXTS_GENERAL.brands.openrouter,
+        placeholder: TEXTS_GENERAL.openRouterKeyPlaceholder,
+        hint: TEXTS_GENERAL.openRouterKeyHint,
     },
     {
         id: 'virustotal' as const,
-        label: 'VirusTotal',
-        placeholder: 'Tu API key de VirusTotal',
-        hint: 'Usada para IP, dominio y hash',
+        label: TEXTS_GENERAL.brands.virustotal,
+        placeholder: TEXTS_GENERAL.virusTotalKeyPlaceholder,
+        hint: TEXTS_GENERAL.virusTotalKeyHint,
     },
     {
         id: 'abuseipdb' as const,
-        label: 'AbuseIPDB',
-        placeholder: 'Tu API key de AbuseIPDB',
-        hint: 'Usada para análisis de IP',
+        label: TEXTS_GENERAL.brands.abuseipdb,
+        placeholder: TEXTS_GENERAL.abuseIpDbKeyPlaceholder,
+        hint: TEXTS_GENERAL.abuseIpDbKeyHint,
     },
     {
         id: 'polyswarm' as const,
-        label: 'PolySwarm',
-        placeholder: 'Tu API key de PolySwarm',
-        hint: 'Usada para análisis de hash',
+        label: TEXTS_GENERAL.brands.polyswarm,
+        placeholder: TEXTS_GENERAL.polySwarmKeyPlaceholder,
+        hint: TEXTS_GENERAL.polySwarmKeyHint,
     },
 ] as const;
 
@@ -80,14 +81,14 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
             <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-primary/30 bg-[linear-gradient(145deg,rgba(195,166,253,0.18),rgba(196,187,240,0.08))] shadow-[0_24px_80px_rgba(195,166,253,0.2)] backdrop-blur">
                 <header className="flex items-center justify-between border-b border-primary/20 bg-primary/10 px-6 py-4">
                     <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-secondary/90">Configuración</p>
-                        <h2 className="text-lg font-semibold text-white">API Keys</h2>
+                        <p className="text-xs uppercase tracking-[0.3em] text-secondary/90">{TEXTS_GENERAL.settingsTitle}</p>
+                        <h2 className="text-lg font-semibold text-white">{TEXTS_GENERAL.apiKeysTitle}</h2>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
                         className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"
-                        title="Cerrar"
+                        title={TEXTS_GENERAL.close}
                     >
                         <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
                             <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
@@ -97,7 +98,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
 
                 <div className="space-y-4 p-6">
                     <p className="rounded-2xl border border-primary/20 bg-primary/8 px-4 py-3 text-xs leading-5 text-slate-300">
-                        Las claves se guardan únicamente en tu navegador. Si las dejas vacías, el servidor usará las configuradas por defecto.
+                        {TEXTS_GENERAL.keysStorageNotice}
                     </p>
 
                     {KEY_CONFIG.map(({ id, label, placeholder, hint }) => (
@@ -128,7 +129,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                                     type="button"
                                     onClick={() => toggleVisible(id)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-200"
-                                    title={visible[id] ? 'Ocultar' : 'Mostrar'}
+                                    title={visible[id] ? TEXTS_GENERAL.hide : TEXTS_GENERAL.show}
                                 >
                                     {visible[id] ? (
                                         <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
@@ -153,7 +154,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                         onClick={handleClear}
                         className="text-xs text-slate-400 underline-offset-2 transition hover:text-slate-200 hover:underline"
                     >
-                        Limpiar todas
+                        {TEXTS_GENERAL.clearKeys}
                     </button>
                     <div className="flex gap-3">
                         <button
@@ -161,14 +162,14 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                             onClick={onClose}
                             className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/10"
                         >
-                            Cancelar
+                            {TEXTS_GENERAL.cancel}
                         </button>
                         <button
                             type="button"
                             onClick={handleSave}
                             className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-slate-950 shadow-[0_8px_24px_rgba(195,166,253,0.3)] transition hover:bg-secondary"
                         >
-                            Guardar
+                            {TEXTS_GENERAL.save}
                         </button>
                     </div>
                 </footer>

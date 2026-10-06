@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { ApiKeys, AiModel, StreamStatus, AnalyzeIoCMeta } from '@/scripts/types.ts';
@@ -29,7 +30,7 @@ export function useAnalyzeIoC(keys: ApiKeys) {
         setLoading(true);
         setStatus('analyzing');
         setMeta(null);
-        setData('Preparando contexto y consultando la IA...\n');
+        setData(TEXTS_GENERAL.preparingAnalysis);
 
         try {
             const requestHeaders = buildRequestHeaders(keys);
@@ -40,13 +41,13 @@ export function useAnalyzeIoC(keys: ApiKeys) {
 
             if (!response.ok) {
                 const result = await response.json();
-                setData(`Error: ${buildUiErrorMessage(result)}`);
+                setData(`${TEXTS_GENERAL.errorPrefix} ${buildUiErrorMessage(result)}`);
                 setStatus('error');
                 return;
             }
 
             if (!response.body) {
-                throw new Error('Streaming no disponible en la respuesta');
+                throw new Error(TEXTS_GENERAL.streamUnavailable);
             }
 
             const reader = response.body.getReader();
@@ -96,7 +97,7 @@ export function useAnalyzeIoC(keys: ApiKeys) {
                     }
 
                     if (event.event === 'error') {
-                        setData(`Error: ${buildUiErrorMessage(payload)}`);
+                        setData(`${TEXTS_GENERAL.errorPrefix} ${buildUiErrorMessage(payload)}`);
                         setStatus('error');
                     }
 
@@ -106,8 +107,8 @@ export function useAnalyzeIoC(keys: ApiKeys) {
                 }
             }
         } catch (error: unknown) {
-            const msg = error instanceof Error ? error.message : 'Error desconocido';
-            setData(`Error: ${msg}`);
+            const msg = error instanceof Error ? error.message : TEXTS_GENERAL.unknownError;
+            setData(`${TEXTS_GENERAL.errorPrefix} ${msg}`);
             setStatus('error');
         } finally {
             setLoading(false);
