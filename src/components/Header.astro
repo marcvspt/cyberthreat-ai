@@ -1,4 +1,5 @@
 ---
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import { SITE_DATA } from "@/scripts/catalog/data.ts";
 
 import GitHubIcon from "@/assets/github.svg";
@@ -14,7 +15,7 @@ import UserIcon from "@/assets/user.svg";
             class="rounded-md p-2 hover:bg-secondary/30 transition-colors duration-300"
         >
             <span class="flex justify-center items-center gap-2">
-                <GitHubIcon />Repo</span
+                <GitHubIcon />{TEXTS_GENERAL.repositoryLink}</span
             >
         </a>
         <h2
@@ -32,7 +33,7 @@ import UserIcon from "@/assets/user.svg";
             class="rounded-md p-2 hover:bg-secondary/30 transition-colors duration-300"
         >
             <span class="flex justify-center items-center gap-2">
-                <UserIcon />Sobre mí</span
+                <UserIcon />{TEXTS_GENERAL.aboutMeLink}</span
             >
         </a>
     </nav>

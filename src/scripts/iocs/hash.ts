@@ -1,3 +1,4 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 import { VIRUSTOTAL_API_KEY, POLYSWARM_API_KEY } from 'astro:env/server';
 import { fetchAllSources } from '@/scripts/iocs/fetcher.ts'
 import { fetchPolySwarmHash } from '@/scripts/sources/polyswarm'
@@ -20,7 +21,7 @@ export async function analyzeHash(hash: string, vtKey?: string, polyKey?: string
             name: 'PolySwarm',
             fetch: () => {
                 if (!hashType) {
-                    throw new Error('Unsupported hash type for PolySwarm')
+                    throw new Error(TEXTS_GENERAL.unsupportedPolySwarmHash)
                 }
                 return fetchPolySwarmHash(ioc, hashType, resolvedPolyKey)
             }

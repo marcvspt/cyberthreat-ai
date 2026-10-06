@@ -1,6 +1,7 @@
+import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
 export const SITE_DATA = {
-    name: "CyberThreat AI",
-    description: "Aplicación desarrollada para el Hackaton de Midudev + CubePath, con el objetivo de demostrar mis habilidades en desarrollo web y ciberseguridad.",
+    name: TEXTS_GENERAL.siteName,
+    description: TEXTS_GENERAL.siteDescription,
     url: "https://ctai.marcvspt.tech",
     repository: "https://github.com/marcvspt/cyberthreat-ai",
     aboutMe: "https://marcvspt.tech/about"
@@ -8,23 +9,28 @@ export const SITE_DATA = {
 
 export const SOCIAL_DATA = [
     {
-        name: "LinkedIn",
+        id: "linkedin",
+        name: TEXTS_GENERAL.socialLabels.linkedin,
         url: "https://www.linkedin.com/in/marcopat01/",
     },
     {
-        name: "GitHub",
+        id: "github",
+        name: TEXTS_GENERAL.socialLabels.github,
         url: "https://github.com/marcvspt",
     },
     {
-        name: "HackTheBox",
+        id: "hackthebox",
+        name: TEXTS_GENERAL.socialLabels.hackthebox,
         url: "https://app.hackthebox.com/profile/935643",
     },
     {
-        name: "X/Twitter",
+        id: "x",
+        name: TEXTS_GENERAL.socialLabels.x,
         url: "https://x.com/marcvspt",
     },
     {
-        name: "Contactame",
+        id: "email",
+        name: TEXTS_GENERAL.socialLabels.email,
         url: "mailto:marcvspt@gmail.com",
     },
 ]

@@ -30,6 +30,7 @@ CyberThreat AI es una aplicación en español para analizar indicadores de compr
 - `src/scripts/iocs/` coordina el análisis por IP, dominio o hash; `src/scripts/sources/` implementa cada proveedor CTI. Mantén esa separación al añadir proveedores.
 - `src/scripts/types.ts` contiene los tipos compartidos. `src/scripts/catalog/models.ts` centraliza `AVAILABLE_MODELS`, `DEFAULT_MODEL` e `isAllowedModel`, compartidos por la UI y el servidor.
 - `src/scripts/catalog/data.ts` contiene los datos del sitio y `src/styles/global.css` los estilos globales.
+- `src/scripts/catalog/texts.ts` centraliza los textos propios de la aplicación en `TEXTS_GENERAL`: interfaz, accesibilidad, metadatos, estados, errores y advertencias. Añade ahí los textos nuevos usando claves semánticas e impórtalos con el alias correspondiente. Los mensajes dinámicos usan funciones con parámetros tipados; no uses etiquetas traducibles como identificadores de lógica. El prompt y el Markdown generado por la IA quedan fuera del catálogo por ahora; todavía no hay selección de idioma ni sistema i18n.
 
 ## Convenciones y contratos
 
