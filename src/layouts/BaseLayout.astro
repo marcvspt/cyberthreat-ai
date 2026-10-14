@@ -4,7 +4,8 @@ import Footer from "@/components/Footer.astro";
 
 import "@/styles/global.css";
 
-import { SITE_DATA } from "@/scripts/catalog/data.ts";
+import { SITE_DATA, SITE_LOCALE } from '@/lib/site.ts';
+import { TEXTS_GENERAL } from '@/lib/texts.ts';
 
 export interface Props {
     title: string;
@@ -15,19 +16,21 @@ export interface Props {
 const {
     title,
     description = SITE_DATA.description,
-    canonical = SITE_DATA.url,
+    canonical,
 } = Astro.props;
+if (!Astro.site) throw new Error(TEXTS_GENERAL.errors.siteConfiguration);
+const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site).href;
 ---
 
 <!doctype html>
-<html lang="es" class="scroll-smooth">
+<html lang={SITE_LOCALE.html} class="scroll-smooth">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="color-scheme" content="light dark" />
         <meta name="description" content={description} />
-        {canonical && <link rel="canonical" href={canonical} />}
+        <link rel="canonical" href={canonicalURL} />
         <link rel="sitemap" href="/sitemap-index.xml" />
         <title>{SITE_DATA.name} | {title}</title>
     </head>

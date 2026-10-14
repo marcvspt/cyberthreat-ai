@@ -24,11 +24,8 @@
       "@/styles/*": [
         "./src/styles/*"
       ],
-      "@/scripts/*": [
-        "./src/scripts/*"
-      ],
-      "@/hooks/*": [
-        "./src/hooks/*"
+      "@/lib/*": [
+        "./src/lib/*"
       ]
     },
     "jsx": "react-jsx",

@@ -1,10 +1,15 @@
 # Instrucciones para agentes
 
+## Contribuciones y mensajes de commit
+
+- Seguir [CONTRIBUTING.md](CONTRIBUTING.md) para preparar contribuciones y redactar commits.
+- Usar prefijos con inicial mayúscula, como `Fix:`, `Feature:` y `Docs:`, seguidos de una descripción breve en español. El ámbito es opcional: `Fix(streaming): corrige el cierre del análisis`. Conservar `Fix:` y `Feature:` en lugar de `fix:` y `feat:`.
+
 ## Proyecto y entorno
 
 CyberThreat AI es una aplicación en español para analizar indicadores de compromiso con proveedores CTI y generar un veredicto vía OpenRouter. Utiliza Astro con salida `server`, adaptador Netlify, React, TypeScript estricto y Tailwind CSS mediante Vite.
 
-- Trabaja con Node.js >= 22.12.0 y pnpm. Conserva `pnpm-lock.yaml` y `pnpm-workspace.yaml`.
+- Trabaja con Node.js >= 24.0.0 y pnpm, conforme a `engines.node` en `package.json`. Conserva `pnpm-lock.yaml` y `pnpm-workspace.yaml`.
 - Comandos existentes: `pnpm install`, `pnpm run dev`, `pnpm run build`, `pnpm run preview` y `pnpm exec astro`.
 - El usuario ejecuta todos los comandos de pnpm, incluidos `install`, `add`, `update`, `run`, `build`, `dev`, `preview`, `exec` y `dlx`. El agente solo debe indicar el comando exacto necesario y explicar para qué sirve; no debe ejecutarlo ni sustituirlo por npm, yarn u otra herramienta para realizar la misma acción. Cualquier instalación de dependencias o herramientas también la realiza el usuario.
 - No hay scripts de test, lint ni check configurados. No afirmes que se ejecutaron comprobaciones inexistentes.
@@ -23,18 +28,18 @@ CyberThreat AI es una aplicación en español para analizar indicadores de compr
 ## Organización del código
 
 - `src/pages/index.astro` monta `App.tsx` con `client:load`; el layout común está en `src/layouts/BaseLayout.astro`.
-- `src/components/` contiene la interfaz; `src/hooks/` gestiona análisis, persistencia de claves y selección de modelo.
+- `src/components/` contiene la interfaz; `src/lib/ui/` reúne los hooks de análisis, persistencia de claves, modelo y eventos, el cliente SSE y los helpers de mensajes de estado.
 - `src/pages/api/ctai.ts` gestiona el endpoint GET, el rate limit por IP y las respuestas JSON/SSE; `src/pages/api/health.ts` expone el estado.
-- `src/scripts/core/ctai.ts` resuelve modelos y claves, orquesta consultas y produce el streaming. `ctaiClient.ts` consume el flujo en el cliente.
-- `src/scripts/core/iocValidators.ts` centraliza la validación con Zod importado desde `astro/zod`.
-- `src/scripts/iocs/` coordina el análisis por IP, dominio o hash; `src/scripts/sources/` implementa cada proveedor CTI. Mantén esa separación al añadir proveedores.
-- `src/scripts/types.ts` contiene los tipos compartidos. `src/scripts/catalog/models.ts` centraliza `AVAILABLE_MODELS`, `DEFAULT_MODEL` e `isAllowedModel`, compartidos por la UI y el servidor.
-- `src/scripts/catalog/data.ts` contiene los datos del sitio y `src/styles/global.css` los estilos globales.
-- `src/scripts/catalog/texts.ts` centraliza los textos propios de la aplicación en `TEXTS_GENERAL`: interfaz, accesibilidad, metadatos, estados, errores y advertencias. Añade ahí los textos nuevos usando claves semánticas e impórtalos con el alias correspondiente. Los mensajes dinámicos usan funciones con parámetros tipados; no uses etiquetas traducibles como identificadores de lógica. El prompt y el Markdown generado por la IA quedan fuera del catálogo por ahora; todavía no hay selección de idioma ni sistema i18n.
+- `src/lib/server/request.ts` resuelve modelos, tipo de IoC y claves; `http.ts` gestiona JSON e IP del cliente; `analysis.ts` orquesta las fuentes y detecta ausencia de datos; `sse.ts` formatea eventos y el flujo sin datos; `openrouter.ts` produce la respuesta de IA. El prompt vive en `src/lib/server/prompts/analysis.ts`. Importar cada archivo directamente; no crear barrels ni importar módulos `server/` desde el navegador.
+- `src/lib/validation/ioc.ts` centraliza la validación con Zod importado desde `astro/zod`. No mantener expresiones regulares paralelas ni validadores heredados sin consumidores.
+- `src/lib/server/analysis/` coordina consultas por IP, dominio o hash; `src/lib/server/providers/` implementa proveedores CTI y el guard compartido. Mantén esa separación al añadir proveedores.
+- `src/lib/types/` separa contratos de análisis y streaming (`analysis.ts`), claves (`api-keys.ts`), modelos (`model.ts`) y sitio/enlaces (`site.ts`). Importar tipos del archivo concreto, sin reexportarlos desde hooks o módulos de ejecución. `src/lib/catalog/models.ts` centraliza `AVAILABLE_MODELS`, `DEFAULT_MODEL` e `isAllowedModel`, compartidos por UI y servidor.
+- `src/lib/site.ts` contiene `SITE_DATA` (nombre y descripción) y `SITE_LOCALE` (idioma del HTML); `src/lib/links.ts` reúne enlaces del encabezado, redes, recursos externos y licencia mediante el contrato `id`, `label`, `href`. No duplicar URLs en componentes ni el dominio en los datos del sitio. `src/styles/global.css` mantiene los estilos globales.
+- `src/lib/texts.ts` centraliza `TEXTS_GENERAL` por secciones: `site`, `common`, `header`, `home`, `footer`, `search`, `settings`, `results`, `errors`, `status`, `brands`, `social` y `models`. Usar claves semánticas y funciones con parámetros tipados. Los códigos de estado y error, IDs de modelos y cabeceras permanecen independientes de sus etiquetas visibles en español. El prompt y el Markdown generado por la IA quedan fuera del catálogo; todavía no hay selección de idioma ni sistema i18n.
 
 ## Convenciones y contratos
 
-- Usa siempre los alias configurados en `tsconfig.json` para los imports internos del proyecto: `@/pages/*`, `@/layouts/*`, `@/components/*`, `@/assets/*`, `@/styles/*`, `@/scripts/*` y `@/hooks/*`. No uses rutas relativas (`./` o `../`) para esos imports, incluidos los imports de tipos y estilos. Si añades una carpeta que necesita imports y no tiene alias, configura el alias correspondiente y úsalo. Los paquetes externos y módulos de Astro conservan sus nombres de importación originales. Respeta el estilo del archivo que edites.
+- Usa siempre los alias configurados en `tsconfig.json`: `@/pages/*`, `@/layouts/*`, `@/components/*`, `@/assets/*`, `@/styles/*` y `@/lib/*`. Incluye la extensión real explícita e importa el archivo concreto, sin barrels ni resolución implícita de directorios. No uses rutas relativas para código interno de `src/`, incluidos tipos y estilos; la configuración ejecutada fuera de Astro conserva rutas relativas compatibles con Node. Los paquetes externos y módulos de Astro conservan sus nombres originales. Respeta el estilo del archivo que edites.
 - Mantén los textos de la interfaz y los mensajes de análisis en español.
 - Mantén la UI coherente entre todas las secciones de la aplicación: reutiliza los componentes, estilos y tokens del tema existentes para colores, tipografía, espaciado, botones, formularios, paneles y mensajes de estado. Conserva patrones de interacción, estados de carga y error, accesibilidad y comportamiento responsive consistentes. Antes de añadir o modificar una sección, revisa las secciones relacionadas y evita introducir variantes visuales o componentes duplicados sin una necesidad funcional.
 - Conserva el soporte para IPv4, IPv6, dominios, MD5, SHA1 y SHA256, y los subtipos mostrados en la UI.
@@ -53,7 +58,7 @@ CyberThreat AI es una aplicación en español para analizar indicadores de compr
 
 - `astro.config.mjs` registra `@astrojs/sitemap` y define `site`. El sitemap se genera durante `pnpm run build`.
 - `src/pages/robots.txt.ts` anuncia `/sitemap-index.xml` usando `site`; `BaseLayout.astro` enlaza el índice y define metadatos y canonical.
-- Al cambiar el dominio, revisa `site`, `SITE_DATA.url` y el referer de OpenRouter en `core/ctai.ts`.
+- El dominio se define únicamente en `site` de `astro.config.mjs`: el layout genera canónicas mediante `Astro.site`; robots usa el contexto; `/api/ctai` pasa `site.origin` a `createOpenRouterStream` como `siteUrl` para el referer. El título enviado a OpenRouter usa `SITE_DATA.name`. La ausencia de `site` genera un error de configuración antes de consultar proveedores. Al cambiar el dominio, modificar esa propiedad y comprobar canónicas, robots, sitemap y referer.
 - No edites manualmente los XML generados ni incluyas endpoints de API en el sitemap.
 
 ## Verificación y documentación

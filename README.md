@@ -4,6 +4,8 @@
 
 Analiza indicadores de compromiso (IoC) con múltiples fuentes de inteligencia de amenazas y obtiene un veredicto razonado en español mediante modelos de IA a través de OpenRouter.
 
+Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para preparar contribuciones, verificar los cambios y seguir la convención de mensajes de commit.
+
 **[Probar la aplicación](https://ctai.marcvspt.tech)**
 
 ## Qué puedes hacer
@@ -31,7 +33,7 @@ Analiza indicadores de compromiso (IoC) con múltiples fuentes de inteligencia d
 
 ### Requisitos
 
-- Node.js **22 o superior**.
+- Node.js **24 o superior**, según `engines.node` en `package.json`.
 - `pnpm` disponible en el entorno.
 - Claves de los proveedores que quieras utilizar. Robtex no requiere clave en el flujo actual.
 
@@ -86,7 +88,7 @@ Las claves del servidor permanecen en variables de entorno. No incluyas valores 
 
 ### Modelos
 
-`src/scripts/catalog/models.ts` centraliza la lista (`AVAILABLE_MODELS`), el valor por defecto (`DEFAULT_MODEL`) y la validación (`isAllowedModel`) para la UI y el servidor.
+`src/lib/catalog/models.ts` centraliza la lista (`AVAILABLE_MODELS`), el valor por defecto (`DEFAULT_MODEL`) y la validación (`isAllowedModel`) para la UI y el servidor.
 
 | ID permitido | Uso |
 | --- | --- |
@@ -190,7 +192,7 @@ Los errores anteriores al inicio del stream usan JSON. Un error durante el strea
 | --- | --- | --- |
 | `400` | Falta el indicador | `{ "error": "Falta el parámetro de IoC" }` |
 | `400` | Indicador no válido | `{ "error": "Tipo de IoC desconocido" }` |
-| `429` | Límite de solicitudes superado | `{ "error": "Too many requests", "retryAfterSeconds": 12 }` |
+| `429` | Límite de solicitudes superado | `{ "error": "Demasiadas solicitudes", "retryAfterSeconds": 12 }` |
 | `500` | Error de proveedores o de IA antes del stream | `{ "error": "…", "stage": "ioc", "errorType": "api_unavailable" }` |
 
 Las respuestas `429` incluyen `Retry-After`, `X-RateLimit-Limit` y `X-RateLimit-Window`. Los errores de IA pueden indicar clave inválida, servicio no disponible o un error de modelo comunicado durante el streaming.
@@ -199,7 +201,7 @@ Las respuestas `429` incluyen `Retry-After`, `X-RateLimit-Limit` y `X-RateLimit-
 
 ### Textos de la aplicación
 
-`src/scripts/catalog/texts.ts` exporta `TEXTS_GENERAL`, el catálogo compartido por Astro, React y el backend. Reúne los textos de interfaz y accesibilidad, metadatos, etiquetas de modelos, estados, errores y advertencias. Los mensajes con nombres de proveedores o cantidades se resuelven mediante funciones con parámetros tipados.
+`src/lib/texts.ts` exporta `TEXTS_GENERAL`, compartido por Astro, React y el backend, con secciones `site`, `common`, `header`, `home`, `footer`, `search`, `settings`, `results`, `errors` y `status`, además de marcas, redes y etiquetas de modelos. Los mensajes con proveedores o cantidades son funciones con parámetros tipados. Los estados visibles y los mensajes propios se presentan en español.
 
 Los identificadores de eventos, modelos, proveedores y almacenamiento permanecen independientes de las etiquetas visibles. Esta extracción prepara un futuro i18n; todavía no implementa traducciones ni selección de idioma. El prompt y el Markdown generado por la IA se mantienen fuera del catálogo, al igual que la documentación del repositorio.
 
@@ -218,22 +220,29 @@ Formulario React
 | Ruta | Responsabilidad |
 | --- | --- |
 | `src/components/` | Interfaz React y componentes Astro |
-| `src/hooks/` | Análisis, claves, modelo persistido y eventos de UI |
+| `src/lib/ui/` | Hooks de análisis, claves y modelo; cliente SSE y mensajes de estado |
 | `src/layouts/BaseLayout.astro` | Layout, metadatos y canonical |
 | `src/pages/api/ctai.ts` | Endpoint de análisis y rate limit |
 | `src/pages/api/health.ts` | Endpoint de estado |
 | `src/pages/robots.txt.ts` | Reglas de rastreo y enlace al sitemap |
-| `src/scripts/core/ctai.ts` | Orquestación del análisis y producción de SSE |
-| `src/scripts/core/ctaiClient.ts` | Helpers del cliente para SSE, cabeceras y errores |
-| `src/scripts/core/iocValidators.ts` | Validación de indicadores con Zod |
-| `src/scripts/core/errors.ts` | Errores de proveedores y mensajes para el cliente |
-| `src/scripts/iocs/` | Análisis de IP, dominio y hash; ejecución de fuentes |
-| `src/scripts/sources/` | Integraciones con proveedores CTI |
-| `src/scripts/catalog/` | Modelos, datos del sitio y mensajes de estado |
-| `src/scripts/types.ts` | Tipos compartidos |
+| `src/lib/server/request.ts` | Resolución de tipo, modelo y claves de la solicitud |
+| `src/lib/server/http.ts` | Respuestas JSON e IP del cliente |
+| `src/lib/server/analysis.ts` | Orquestación de fuentes y detección de ausencia de datos |
+| `src/lib/server/sse.ts` | Formato de eventos y flujo sin datos |
+| `src/lib/server/openrouter.ts` | Consulta a OpenRouter y producción de SSE |
+| `src/lib/server/prompts/analysis.ts` | Prompt del veredicto, separado del copy de interfaz |
+| `src/lib/server/errors.ts` | Errores de proveedores y mensajes para el cliente |
+| `src/lib/server/analysis/` | Consultas por IP, dominio y hash |
+| `src/lib/server/providers/` | Integraciones CTI y guard compartido de peticiones |
+| `src/lib/validation/ioc.ts` | Validación de indicadores con Zod |
+| `src/lib/ui/ctai-client.ts` | Consumo SSE, cabeceras de claves y mensajes del cliente |
+| `src/lib/catalog/models.ts` | Lista de modelos, default y validación compartida |
+| `src/lib/site.ts` | Marca y configuración del idioma del HTML |
+| `src/lib/links.ts` | Enlaces de encabezado, redes, recursos y licencia |
+| `src/lib/types/` | Tipos separados de análisis, claves, modelos y sitio |
 | `src/styles/global.css` | Estilos globales y configuración de tema |
 
-Los imports internos usan los alias `@/pages/*`, `@/layouts/*`, `@/components/*`, `@/assets/*`, `@/styles/*`, `@/scripts/*` y `@/hooks/*`, configurados en `tsconfig.json`. Las instrucciones para agentes están en [AGENTS.md](AGENTS.md).
+Los imports internos usan los alias `@/pages/*`, `@/layouts/*`, `@/components/*`, `@/assets/*`, `@/styles/*` y `@/lib/*`, con extensión real explícita e imports al archivo concreto, sin barrels ni reexportaciones de conveniencia. Los tipos se importan directamente desde `src/lib/types/`; los hooks no los reexportan. Los módulos `server/` se consumen exclusivamente desde servidor; el navegador utiliza `ui/`, catálogos y tipos compartidos. Los enlaces tienen `id`, `label` y `href`, independientes de las etiquetas visibles. Las instrucciones para agentes están en [AGENTS.md](AGENTS.md).
 
 ## Stack
 
@@ -278,7 +287,7 @@ El sitemap incluye la página de inicio (`/`); los endpoints `/api/ctai`, `/api/
 
 Para comprobar la generación, ejecuta `pnpm run build` y revisa ambos XML en `dist/`. El servidor de desarrollo no genera estos archivos. Después del despliegue, comprueba las tres rutas públicas.
 
-Si cambia el dominio, actualiza `site` en `astro.config.mjs`, `SITE_DATA.url` en `src/scripts/catalog/data.ts` y el referer de OpenRouter en `src/scripts/core/ctai.ts`.
+El dominio se define únicamente en `site` de `astro.config.mjs`. Las canónicas usan `Astro.site`, robots usa el contexto y `/api/ctai` pasa `site.origin` a OpenRouter como `siteUrl` para la cabecera `HTTP-Referer`; `X-Title` usa `SITE_DATA.name`. Si falta `site`, se informa un error de configuración antes de consultar proveedores. Al cambiar el dominio, modifica esa propiedad y comprueba canónicas, robots, sitemap y referer. Consulta el [contexto de Astro](https://docs.astro.build/en/reference/api-reference/#site).
 
 ## Roadmap
 

@@ -1,29 +1,20 @@
-import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
+import { TEXTS_GENERAL } from '@/lib/texts.ts';
 import type { APIRoute } from 'astro';
 import { OPENROUTER_API_KEY, RATE_LIMIT_POINTS, RATE_LIMIT_DURATION } from 'astro:env/server';
-import { toClientError } from '@/scripts/core/errors.ts';
+import { toClientError } from '@/lib/server/errors.ts';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-import {
-
-    jsonHeaders,
-    streamHeaders,
-    jsonResponse,
-    getClientIp,
-    resolveIocType,
-    resolveModel,
-    resolveRequestApiKeys,
-    analyzeIocByType,
-    allSourcesEmpty,
-    createNoDataStream,
-    createOpenRouterStream
-} from '@/scripts/core/ctai.ts'
+import { jsonHeaders, jsonResponse, getClientIp } from '@/lib/server/http.ts';
+import { streamHeaders, createNoDataStream } from '@/lib/server/sse.ts';
+import { resolveIocType, resolveModel, resolveRequestApiKeys } from '@/lib/server/request.ts';
+import { analyzeIocByType, allSourcesEmpty } from '@/lib/server/analysis.ts';
+import { createOpenRouterStream } from '@/lib/server/openrouter.ts';
 
 const rateLimiter = new RateLimiterMemory({
     points: Number(RATE_LIMIT_POINTS),
     duration: Number(RATE_LIMIT_DURATION)
 })
 
-export const GET = (async ({ request }) => {
+export const GET = (async ({ request, site }) => {
     const { url } = request
     const urlObject = new URL(url)
     const clientIp = getClientIp(request)
@@ -37,7 +28,7 @@ export const GET = (async ({ request }) => {
         const retryAfterSeconds = Math.max(1, Math.ceil(msBeforeNext / 1000))
 
         return new Response(JSON.stringify({
-            error: TEXTS_GENERAL.rateLimitError,
+            error: TEXTS_GENERAL.errors.rateLimitError,
             retryAfterSeconds
         }), {
             status: 429,
@@ -53,18 +44,22 @@ export const GET = (async ({ request }) => {
     const ioc = urlObject.searchParams.get("ioc")
 
     if (!ioc) {
-        return jsonResponse({ error: TEXTS_GENERAL.missingIoc }, 400)
+        return jsonResponse({ error: TEXTS_GENERAL.errors.missingIoc }, 400)
     }
 
     const iocType = resolveIocType(ioc)
 
     if (!iocType) {
-        return jsonResponse({ error: TEXTS_GENERAL.invalidIoc }, 400)
+        return jsonResponse({ error: TEXTS_GENERAL.errors.invalidIoc }, 400)
     }
 
     const rawModel = urlObject.searchParams.get("model") ?? ""
     const resolvedModel = resolveModel(rawModel)
     const requestKeys = resolveRequestApiKeys(request, OPENROUTER_API_KEY || '')
+
+    if (!site) {
+        return jsonResponse({ error: TEXTS_GENERAL.errors.siteConfiguration }, 500)
+    }
 
     try {
         const toolResult = await analyzeIocByType(iocType, ioc, requestKeys)
@@ -80,7 +75,8 @@ export const GET = (async ({ request }) => {
             iocType,
             toolResult,
             apiKey: requestKeys.openRouterKey,
-            model: resolvedModel
+            model: resolvedModel,
+            siteUrl: site.origin
         })
 
         return new Response(stream, {
