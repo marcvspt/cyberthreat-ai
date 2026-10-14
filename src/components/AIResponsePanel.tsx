@@ -1,8 +1,8 @@
-import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
+import { TEXTS_GENERAL } from '@/lib/texts.ts';
 import { useEffect, useState } from 'react';
 import { Streamdown } from 'streamdown';
-import type { AnalyzeIoCMeta, StreamStatus } from '@/scripts/types.ts';
-import { EMPTY_MESSAGES, getRandomMessage, getStatusMessage } from '@/scripts/catalog/statusMessages.ts';
+import type { AnalyzeIoCMeta, StreamStatus } from '@/lib/types/analysis.ts';
+import { EMPTY_MESSAGES, getRandomMessage, getStatusMessage } from '@/lib/ui/status-messages.ts';
 import AlertBox from '@/components/AlertBox.tsx';
 
 type AIResponsePanelProps = {
@@ -46,10 +46,10 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
         >
             <header className="flex items-center justify-between border-b border-primary/20 bg-primary/10 px-5 py-4">
                 <div>
-                    <h2 id={titleId} className="text-lg font-semibold text-white">{TEXTS_GENERAL.resultsTitle}</h2>
+                    <h2 id={titleId} className="text-lg font-semibold text-white">{TEXTS_GENERAL.results.title}</h2>
                 </div>
                 <span className="rounded-full border border-secondary/35 bg-secondary/15 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-secondary">
-                    {TEXTS_GENERAL.statusLabels[status]}
+                    {TEXTS_GENERAL.status.labels[status]}
                 </span>
             </header>
 
@@ -58,15 +58,15 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                     <>
                         <dl className="grid gap-2 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-slate-200 md:grid-cols-3 place-items-center">
                             <div className="text-center">
-                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.resultIocLabel}</strong></dt>
+                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.results.iocLabel}</strong></dt>
                                 <dd className="break-all">{meta.ioc}</dd>
                             </div>
                             <div className="text-center">
-                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.resultTypeLabel}</strong></dt>
+                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.results.typeLabel}</strong></dt>
                                 <dd className="break-all">{meta.type}</dd>
                             </div>
                             <div className="text-center">
-                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.resultModelLabel}</strong></dt>
+                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.results.modelLabel}</strong></dt>
                                 <dd className="break-all">{meta.model}</dd>
                             </div>
                         </dl>
@@ -91,13 +91,13 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                                     const lines = []
                                     if (badKey.length > 0) {
                                         lines.push({
-                                            title: TEXTS_GENERAL.invalidKeySources(badKey.length),
+                                            title: TEXTS_GENERAL.results.invalidKeySources(badKey.length),
                                             detail: badKey.map((w) => w.source).join(', ')
                                         })
                                     }
                                     if (noData.length > 0) {
                                         lines.push({
-                                            title: TEXTS_GENERAL.noDataSources(noData.length),
+                                            title: TEXTS_GENERAL.results.noDataSources(noData.length),
                                             detail: noData.map((w) => w.source).join(', ')
                                         })
                                     }
@@ -112,7 +112,7 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                             variant="error"
                             role="alert"
                             ariaLive="assertive"
-                            lines={[{ title: TEXTS_GENERAL.analysisErrorTitle, detail: data.startsWith(TEXTS_GENERAL.errorPrefix) ? data.slice(TEXTS_GENERAL.errorPrefix.length).trimStart() : data }]}
+                            lines={[{ title: TEXTS_GENERAL.results.errorTitle, detail: data.startsWith(TEXTS_GENERAL.common.errorPrefix) ? data.slice(TEXTS_GENERAL.common.errorPrefix.length).trimStart() : data }]}
                         />
                     ) : data ? (
                         <div

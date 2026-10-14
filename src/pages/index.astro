@@ -1,18 +1,18 @@
 ---
-import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
+import { TEXTS_GENERAL } from '@/lib/texts.ts';
 import BaseLayout from "@/layouts/BaseLayout.astro";
 
 import App from "@/components/App.tsx";
 ---
 
-<BaseLayout title={TEXTS_GENERAL.homeTitle}>
+<BaseLayout title={TEXTS_GENERAL.home.title}>
 	<main class="py-8">
 		<h1 class="text-center text-wrap text-3xl text-secondary font-semibold">
-			{TEXTS_GENERAL.heroStart}<span class="text-primary font-bold"
-				>{TEXTS_GENERAL.heroIndicators}</span
-			>{TEXTS_GENERAL.heroBridge}<span class="text-primary font-bold"
-				>{TEXTS_GENERAL.heroModels}</span
-			>{TEXTS_GENERAL.heroEnd}
+			{TEXTS_GENERAL.home.heroStart}<span class="text-primary font-bold"
+				>{TEXTS_GENERAL.home.heroIndicators}</span
+			>{TEXTS_GENERAL.home.heroBridge}<span class="text-primary font-bold"
+				>{TEXTS_GENERAL.home.heroModels}</span
+			>{TEXTS_GENERAL.home.heroEnd}
 		</h1>
 		<App client:load />
 	</main>

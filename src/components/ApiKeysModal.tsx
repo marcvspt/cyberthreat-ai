@@ -1,6 +1,6 @@
-import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
+import { TEXTS_GENERAL } from '@/lib/texts.ts';
 import { useEffect, useState } from 'react';
-import type { ApiKeys } from '@/hooks/useApiKeys.ts';
+import type { ApiKeys } from '@/lib/types/api-keys.ts';
 
 type ApiKeysModalProps = {
     isOpen: boolean;
@@ -13,26 +13,26 @@ const KEY_CONFIG = [
     {
         id: 'openrouter' as const,
         label: TEXTS_GENERAL.brands.openrouter,
-        placeholder: TEXTS_GENERAL.openRouterKeyPlaceholder,
-        hint: TEXTS_GENERAL.openRouterKeyHint,
+        placeholder: TEXTS_GENERAL.settings.openRouterKeyPlaceholder,
+        hint: TEXTS_GENERAL.settings.openRouterKeyHint,
     },
     {
         id: 'virustotal' as const,
         label: TEXTS_GENERAL.brands.virustotal,
-        placeholder: TEXTS_GENERAL.virusTotalKeyPlaceholder,
-        hint: TEXTS_GENERAL.virusTotalKeyHint,
+        placeholder: TEXTS_GENERAL.settings.virusTotalKeyPlaceholder,
+        hint: TEXTS_GENERAL.settings.virusTotalKeyHint,
     },
     {
         id: 'abuseipdb' as const,
         label: TEXTS_GENERAL.brands.abuseipdb,
-        placeholder: TEXTS_GENERAL.abuseIpDbKeyPlaceholder,
-        hint: TEXTS_GENERAL.abuseIpDbKeyHint,
+        placeholder: TEXTS_GENERAL.settings.abuseIpDbKeyPlaceholder,
+        hint: TEXTS_GENERAL.settings.abuseIpDbKeyHint,
     },
     {
         id: 'polyswarm' as const,
         label: TEXTS_GENERAL.brands.polyswarm,
-        placeholder: TEXTS_GENERAL.polySwarmKeyPlaceholder,
-        hint: TEXTS_GENERAL.polySwarmKeyHint,
+        placeholder: TEXTS_GENERAL.settings.polySwarmKeyPlaceholder,
+        hint: TEXTS_GENERAL.settings.polySwarmKeyHint,
     },
 ] as const;
 
@@ -81,14 +81,14 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
             <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-primary/30 bg-[linear-gradient(145deg,rgba(195,166,253,0.18),rgba(196,187,240,0.08))] shadow-[0_24px_80px_rgba(195,166,253,0.2)] backdrop-blur">
                 <header className="flex items-center justify-between border-b border-primary/20 bg-primary/10 px-6 py-4">
                     <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-secondary/90">{TEXTS_GENERAL.settingsTitle}</p>
-                        <h2 className="text-lg font-semibold text-white">{TEXTS_GENERAL.apiKeysTitle}</h2>
+                        <p className="text-xs uppercase tracking-[0.3em] text-secondary/90">{TEXTS_GENERAL.settings.title}</p>
+                        <h2 className="text-lg font-semibold text-white">{TEXTS_GENERAL.settings.apiKeysTitle}</h2>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
                         className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"
-                        title={TEXTS_GENERAL.close}
+                        title={TEXTS_GENERAL.common.close}
                     >
                         <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
                             <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
@@ -98,7 +98,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
 
                 <div className="space-y-4 p-6">
                     <p className="rounded-2xl border border-primary/20 bg-primary/8 px-4 py-3 text-xs leading-5 text-slate-300">
-                        {TEXTS_GENERAL.keysStorageNotice}
+                        {TEXTS_GENERAL.settings.keysStorageNotice}
                     </p>
 
                     {KEY_CONFIG.map(({ id, label, placeholder, hint }) => (
@@ -129,7 +129,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                                     type="button"
                                     onClick={() => toggleVisible(id)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-200"
-                                    title={visible[id] ? TEXTS_GENERAL.hide : TEXTS_GENERAL.show}
+                                    title={visible[id] ? TEXTS_GENERAL.common.hide : TEXTS_GENERAL.common.show}
                                 >
                                     {visible[id] ? (
                                         <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
@@ -154,7 +154,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                         onClick={handleClear}
                         className="text-xs text-slate-400 underline-offset-2 transition hover:text-slate-200 hover:underline"
                     >
-                        {TEXTS_GENERAL.clearKeys}
+                        {TEXTS_GENERAL.settings.clearKeys}
                     </button>
                     <div className="flex gap-3">
                         <button
@@ -162,14 +162,14 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                             onClick={onClose}
                             className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/10"
                         >
-                            {TEXTS_GENERAL.cancel}
+                            {TEXTS_GENERAL.common.cancel}
                         </button>
                         <button
                             type="button"
                             onClick={handleSave}
                             className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-slate-950 shadow-[0_8px_24px_rgba(195,166,253,0.3)] transition hover:bg-secondary"
                         >
-                            {TEXTS_GENERAL.save}
+                            {TEXTS_GENERAL.common.save}
                         </button>
                     </div>
                 </footer>

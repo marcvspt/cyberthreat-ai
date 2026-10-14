@@ -1,4 +1,4 @@
-import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
+import { TEXTS_GENERAL } from '@/lib/texts.ts';
 export default function IoCInputField() {
     return (
         <div className="relative flex-1">
@@ -10,7 +10,7 @@ export default function IoCInputField() {
             <input
                 className="h-14 w-full rounded-2xl border border-primary/30 bg-white/8 pl-12 pr-4 text-base text-white shadow-sm outline-none transition placeholder:text-slate-400 focus:border-secondary focus:bg-white/10 focus:shadow-[0_0_0_4px_rgba(196,187,240,0.15)]"
                 type="text"
-                placeholder={TEXTS_GENERAL.iocPlaceholder}
+                placeholder={TEXTS_GENERAL.search.iocPlaceholder}
                 id="ioc-input"
                 name="ioc-input"
                 autoComplete="off"

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useAnalyzeIoC } from '@/hooks/useAnalyzeIoC.ts';
-import { useApiKeys } from '@/hooks/useApiKeys.ts';
+import { useAnalyzeIoC } from '@/lib/ui/useAnalyzeIoC.ts';
+import { useApiKeys } from '@/lib/ui/useApiKeys.ts';
 import IoCSearchForm from '@/components/IoCSearchForm.tsx';
 import AIResponsePanel from '@/components/AIResponsePanel.tsx';
 import ApiKeysModal from '@/components/ApiKeysModal.tsx';

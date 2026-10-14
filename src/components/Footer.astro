@@ -1,6 +1,8 @@
 ---
-import { TEXTS_GENERAL } from '@/scripts/catalog/texts.ts';
-import { SITE_DATA, SOCIAL_DATA, currentYear } from "@/scripts/catalog/data.js";
+import { TEXTS_GENERAL } from '@/lib/texts.ts';
+import { SITE_DATA } from '@/lib/site.ts';
+import { SOCIAL_DATA, EXTERNAL_RESOURCES, LICENSE_LINK } from '@/lib/links.ts';
+const currentYear = new Date().getFullYear();
 
 import LinkedInIcon from "@/assets/linkedin.svg";
 import GitHubIcon from "@/assets/github.svg";
@@ -25,7 +27,7 @@ import LinkIcon from "@/assets/link.svg";
     >
         <div class="flex flex-col items-center text-center">
             <h2 class="text-xl font-bold text-wrap">
-                {TEXTS_GENERAL.hackathonTitle}
+                {TEXTS_GENERAL.footer.hackathonTitle}
             </h2>
             <p class="text-balance mt-4 max-w-xl">
                 {SITE_DATA.description}
@@ -37,10 +39,10 @@ import LinkIcon from "@/assets/link.svg";
                         return (
                             <a
                                 id={`link-${social.id}`}
-                                href={social.url}
+                                href={social.href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                aria-label={social.name}
+                                aria-label={social.label}
                                 class="hover:text-secondary/90 transition duration-100 ease-in-out"
                             >
                                 {social.id === "linkedin" && <LinkedInIcon />}
@@ -57,105 +59,105 @@ import LinkIcon from "@/assets/link.svg";
             </div>
         </div>
         <div class="w-full md:min-w-100">
-            <h2 class="text-xl font-bold text-center">{TEXTS_GENERAL.poweredBy}</h2>
+            <h2 class="text-xl font-bold text-center">{TEXTS_GENERAL.footer.poweredBy}</h2>
             <ul class="powered-grid mt-4">
                 <li class="justify-self-center">
                     <a
-                        href="https://cubepath.com"
+                        href={EXTERNAL_RESOURCES.cubepath.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <LinkIcon />
-                        <span>{TEXTS_GENERAL.brands.cubepath}</span>
+                        <span>{EXTERNAL_RESOURCES.cubepath.label}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
                     <a
-                        href="https://astro.build"
+                        href={EXTERNAL_RESOURCES.astro.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <AstroIcon />
-                        <span>{TEXTS_GENERAL.brands.astro}</span>
+                        <span>{EXTERNAL_RESOURCES.astro.label}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
                     <a
-                        href="https://react.dev"
+                        href={EXTERNAL_RESOURCES.react.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <ReactIcon />
-                        <span>{TEXTS_GENERAL.brands.react}</span>
+                        <span>{EXTERNAL_RESOURCES.react.label}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
                     <a
-                        href="https://tailwindcss.com"
+                        href={EXTERNAL_RESOURCES.tailwind.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <TailwindIcon />
-                        <span>{TEXTS_GENERAL.brands.tailwind}</span>
+                        <span>{EXTERNAL_RESOURCES.tailwind.label}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
                     <a
-                        href="https://openrouter.ai"
+                        href={EXTERNAL_RESOURCES.openrouter.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <OpenRouterIcon />
-                        <span>{TEXTS_GENERAL.brands.openrouter}</span>
+                        <span>{EXTERNAL_RESOURCES.openrouter.label}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
                     <a
-                        href="https://www.virustotal.com"
+                        href={EXTERNAL_RESOURCES.virustotal.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <VirusTotalIcon />
-                        <span>{TEXTS_GENERAL.brands.virustotal}</span>
+                        <span>{EXTERNAL_RESOURCES.virustotal.label}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
                     <a
-                        href="https://www.abuseipdb.com"
+                        href={EXTERNAL_RESOURCES.abuseipdb.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <LinkIcon />
-                        <span>{TEXTS_GENERAL.brands.abuseipdb}</span>
+                        <span>{EXTERNAL_RESOURCES.abuseipdb.label}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
                     <a
-                        href="https://polyswarm.io"
+                        href={EXTERNAL_RESOURCES.polyswarm.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <LinkIcon />
-                        <span>{TEXTS_GENERAL.brands.polyswarm}</span>
+                        <span>{EXTERNAL_RESOURCES.polyswarm.label}</span>
                     </a>
                 </li>
                 <li class="justify-self-center">
                     <a
-                        href="https://www.robtex.com"
+                        href={EXTERNAL_RESOURCES.robtex.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex items-center gap-2 hover:text-secondary/90 transition duration-100 ease-in-out"
                     >
                         <LinkIcon />
-                        <span>{TEXTS_GENERAL.brands.robtex}</span>
+                        <span>{EXTERNAL_RESOURCES.robtex.label}</span>
                     </a>
                 </li>
             </ul>
@@ -163,12 +165,12 @@ import LinkIcon from "@/assets/link.svg";
     </article>
 
     <div class="text-center">
-        © {currentYear}. {TEXTS_GENERAL.licenseNotice} <a
-            href="https://github.com/marcvspt/cyberthreat-ai/blob/master/LICENSE"
+        © {currentYear}. {TEXTS_GENERAL.footer.licenseNotice} <a
+            href={LICENSE_LINK.href}
             target="_blank"
             rel="noopener noreferrer"
             class="hover:text-secondary/90 transition duration-100 ease-in-out"
-            ><strong>{TEXTS_GENERAL.licenseName}</strong></a
+            ><strong>{LICENSE_LINK.label}</strong></a
         >.
     </div>
 </footer>
