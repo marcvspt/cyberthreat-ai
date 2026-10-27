@@ -2,8 +2,9 @@
 
 ## Contribuciones y mensajes de commit
 
-- Seguir [CONTRIBUTING.md](CONTRIBUTING.md) para preparar contribuciones y redactar commits.
-- Usar prefijos con inicial mayúscula, como `Fix:`, `Feature:` y `Docs:`, seguidos de una descripción breve en español. El ámbito es opcional: `Fix(streaming): corrige el cierre del análisis`. Conservar `Fix:` y `Feature:` en lugar de `fix:` y `feat:`.
+- Seguir [CONTRIBUTING.md](CONTRIBUTING.md) para preparar contribuciones y redactar mensajes de commit; esa guía define el formato, los prefijos y la separación de cambios independientes.
+- Al entregar cambios, incluir siempre una recomendación de mensaje de commit para los cambios de la tarea. Si se solicita cubrir todos los cambios pendientes, revisar `git status`, los diffs preparados y sin preparar y los archivos nuevos no ignorados antes de redactarla.
+- Recomendar un mensaje no autoriza realizar el commit ni publicar cambios.
 
 ## Proyecto y entorno
 
