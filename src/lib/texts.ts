@@ -27,6 +27,11 @@ export const TEXTS_GENERAL = {
     header: {
         repositoryLink: 'Repo',
         aboutMeLink: 'Sobre mí',
+        supportButton: 'Apóyame',
+        supportTitle: 'Apoya este proyecto',
+        supportDescription: 'Si CyberThreat AI te resulta útil, puedes apoyar su desarrollo en estas plataformas.',
+        buyMeACoffee: 'Buy Me a Coffee',
+        githubSponsors: 'GitHub Sponsors',
     },
     home: {
         title: 'Inicio',

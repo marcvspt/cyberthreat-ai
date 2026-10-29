@@ -50,6 +50,7 @@ CyberThreat AI es una aplicación en español para analizar indicadores de compr
 
 ## Claves y configuración
 
+- Cuando sea necesario actualizar la base de datos de producción, entrega las consultas SQL directamente en el chat, en un bloque de código `sql` listo para que el usuario lo revise y ejecute. No generes archivos para entregar esas consultas, incluidos archivos `.sql` o de migración, ni las ejecutes en producción por tu cuenta.
 - Utiliza siempre las APIs de variables de entorno de Astro: declara y valida las variables mediante `env.schema` y `envField` en `astro.config.mjs`, e impórtalas desde `astro:env/server` o `astro:env/client` según su contexto. No sustituyas este mecanismo por `process.env`, `import.meta.env` o lecturas manuales de `.env` en el código de la aplicación. Las variables actuales del servidor se consumen mediante `astro:env/server` y el esquema las marca como obligatorias; conserva el contexto y el nivel de acceso adecuados al añadir variables, y nunca expongas secretos al cliente.
 - No publiques ni registres valores de `.env`, claves del usuario o cabeceras de autenticación. No muevas secretos del servidor a módulos importados por el cliente.
 - Las claves del usuario se guardan en localStorage mediante `useApiKeys` y se envían por cabeceras `X-OpenRouter-Key`, `X-VT-Key`, `X-AbuseIPDB-Key` y `X-Polyswarm-Key`. Conserva el fallback a las claves del servidor.
