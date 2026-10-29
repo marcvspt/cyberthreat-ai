@@ -1,13 +1,14 @@
 ---
 import { SITE_DATA } from '@/lib/site.ts';
 import { HEADER_LINKS } from '@/lib/links.ts';
+import SupportMenu from '@/components/SupportMenu.astro';
 
 import GitHubIcon from "@/assets/github.svg";
 import UserIcon from "@/assets/user.svg";
 ---
 
 <header>
-    <nav class="flex flex-row justify-center items-center gap-4 mt-4">
+    <nav class="flex flex-row flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-4">
         <a
             href={HEADER_LINKS.repository.href}
             target="_blank"
@@ -36,5 +37,6 @@ import UserIcon from "@/assets/user.svg";
                 <UserIcon />{HEADER_LINKS.aboutMe.label}</span
             >
         </a>
+        <SupportMenu />
     </nav>
 </header>

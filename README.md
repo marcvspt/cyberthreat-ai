@@ -16,6 +16,7 @@ Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para preparar contribuciones, verifi
 - Seleccionar un modelo y ver el modelo que OpenRouter ha utilizado realmente, cuando lo informa.
 - Configurar claves propias desde la interfaz, con fallback a las claves del servidor.
 - Consultar advertencias por fuente cuando una consulta falla o no encuentra datos.
+- Apoyar el proyecto desde el botón «Apóyame» de la navegación, que abre un menú con enlaces a Buy Me a Coffee y GitHub Sponsors.
 
 | Indicador | Fuentes consultadas | Tipo mostrado en la UI |
 | --- | --- | --- |

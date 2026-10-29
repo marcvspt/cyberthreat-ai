@@ -14,6 +14,11 @@ export const SOCIAL_DATA: SocialLinkItem[] = [
     { id: 'email', label: TEXTS_GENERAL.social.email, href: 'mailto:marcvspt@gmail.com' },
 ];
 
+export const SUPPORT_LINKS: LinkItem[] = [
+    { id: 'buy-me-a-coffee', label: TEXTS_GENERAL.header.buyMeACoffee, href: 'https://buymeacoffee.com/marcvspt' },
+    { id: 'github-sponsors', label: TEXTS_GENERAL.header.githubSponsors, href: 'https://github.com/sponsors/marcvspt' },
+];
+
 export const EXTERNAL_RESOURCES = {
     cubepath: { id: 'cubepath', label: TEXTS_GENERAL.brands.cubepath, href: 'https://cubepath.com' },
     astro: { id: 'astro', label: TEXTS_GENERAL.brands.astro, href: 'https://astro.build' },
