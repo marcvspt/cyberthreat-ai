@@ -6,6 +6,7 @@ import "@/styles/global.css";
 
 import { SITE_DATA, SITE_LOCALE } from '@/lib/site.ts';
 import { TEXTS_GENERAL } from '@/lib/texts.ts';
+import faviconUrl from '@/assets/icon.svg?url';
 
 export interface Props {
     title: string;
@@ -27,7 +28,7 @@ const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site).href;
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/svg+xml" sizes="any" href={faviconUrl} />
         <meta name="color-scheme" content="light dark" />
         <meta name="description" content={description} />
         <link rel="canonical" href={canonicalURL} />

@@ -26,7 +26,7 @@ Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para preparar contribuciones, verifi
 
 ## Capturas
 
-La marca del encabezado utiliza `src/assets/logo.svg` (icono y nombre en un único SVG). `src/assets/icon.svg` contiene el mismo icono separado, sin texto y con fondo transparente, para reutilizarlo. `public/favicon.svg` es una copia idéntica de ese icono para la pestaña del navegador; mantén ambas versiones sincronizadas al modificarlo.
+La marca del encabezado utiliza `src/assets/logo.svg` (icono y nombre en un único SVG). `src/assets/icon.svg` contiene el mismo icono separado, sin texto y con fondo transparente, para reutilizarlo. El layout importa `src/assets/icon.svg?url` como favicon para que Astro gestione su URL y la versione al compilar. `public/favicon.svg` conserva una copia del icono y `public/favicon.ico` ofrece un respaldo para clientes que solicitan esa ruta; mantén estas versiones sincronizadas al modificarlo.
 
 ![Interfaz de CyberThreat AI](image-2.png)
 
