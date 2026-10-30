@@ -26,7 +26,7 @@ Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para preparar contribuciones, verifi
 
 ## Capturas
 
-La marca del encabezado utiliza `src/assets/logo.svg` (icono y nombre en un único SVG). `public/favicon.svg` contiene la versión del icono para la pestaña del navegador.
+La marca del encabezado utiliza `src/assets/logo.svg` (icono y nombre en un único SVG). `src/assets/icon.svg` contiene el mismo icono separado, sin texto y con fondo transparente, para reutilizarlo. `public/favicon.svg` es una copia idéntica de ese icono para la pestaña del navegador; mantén ambas versiones sincronizadas al modificarlo.
 
 ![Interfaz de CyberThreat AI](image-2.png)
 
