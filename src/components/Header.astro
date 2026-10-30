@@ -2,6 +2,7 @@
 import { SITE_DATA } from '@/lib/site.ts';
 import { HEADER_LINKS } from '@/lib/links.ts';
 import SupportMenu from '@/components/SupportMenu.astro';
+import Logo from '@/assets/logo.svg';
 
 import GitHubIcon from "@/assets/github.svg";
 import UserIcon from "@/assets/user.svg";
@@ -22,10 +23,7 @@ import UserIcon from "@/assets/user.svg";
         <h2
             class="text-2xl font-extrabold tracking-tight leading-none text-center"
         >
-            <span>{SITE_DATA.name.split(" ")[0]}</span>
-            <span class="text-primary">
-                {SITE_DATA.name.split(" ").slice(1).join(" ")}</span
-            >
+            <Logo role="img" aria-label={SITE_DATA.name} class="h-10 w-auto max-w-full" />
         </h2>
         <a
             href={HEADER_LINKS.aboutMe.href}
