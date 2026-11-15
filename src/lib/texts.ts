@@ -3,14 +3,10 @@ export const TEXTS_GENERAL = {
     brands: {
         cubepath: 'Cubepath', astro: 'Astro', react: 'React', tailwind: 'Tailwind CSS',
         openrouter: 'OpenRouter', virustotal: 'VirusTotal', abuseipdb: 'AbuseIPDB',
-        polyswarm: 'PolySwarm', robtex: 'Robtex', poolside: 'Poolside', novita: 'NovitaAI',
+        polyswarm: 'PolySwarm', robtex: 'Robtex',
     },
     social: {
         linkedin: 'LinkedIn', github: 'GitHub', hackthebox: 'HackTheBox', x: 'X/Twitter', email: 'Contactame',
-    },
-    models: {
-        auto: 'Predeterminado - OpenRouter (automático)', free: 'OpenRouter (gratuito)',
-        poolside: 'Poolside: Laguna XS 2.1 (gratuito)', novita: 'NovitaAI: Ling-3.0-flash (gratuito)',
     },
     site: {
         name: "CyberThreat AI",
