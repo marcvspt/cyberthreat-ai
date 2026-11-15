@@ -5,22 +5,28 @@ import type { CtiSourceRequest, CtiSourceResult, ErrorType } from '@/lib/types/a
 type SourceResult = CtiSourceResult
 type SourceRequest = CtiSourceRequest
 
-export async function fetchWithProviderGuard(
+const CTI_TIMEOUT_MS = 10_000
+
+export async function fetchProviderJson(
     provider: string,
     input: RequestInfo | URL,
-    init?: RequestInit,
+    init: RequestInit = {},
     emptyStatusCodes: number[] = []
-) {
+): Promise<unknown> {
+    const timeout = AbortSignal.timeout(CTI_TIMEOUT_MS)
+    const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout
     let response: Response
 
     try {
-        response = await fetch(input, init)
+        response = await fetch(input, { ...init, signal })
     } catch {
         throw new ProviderError('ioc', provider, 'api_unavailable')
     }
 
-    if (!response.ok) {
-        if (response.status === 404) {
+    const isEmpty = response.status === 404 || emptyStatusCodes.includes(response.status)
+    if (!response.ok || isEmpty) {
+        await response.body?.cancel().catch(() => {})
+        if (isEmpty) {
             throw new ProviderError('ioc', provider, 'not_found')
         }
         if (response.status === 401 || response.status === 403) {
@@ -29,11 +35,11 @@ export async function fetchWithProviderGuard(
         throw new ProviderError('ioc', provider, 'api_unavailable')
     }
 
-    if (emptyStatusCodes.includes(response.status)) {
-        throw new ProviderError('ioc', provider, 'not_found')
+    try {
+        return await response.json()
+    } catch {
+        throw new ProviderError('ioc', provider, 'api_unavailable')
     }
-
-    return response
 }
 
 function warningMessageFor(name: string, reason: unknown): string {

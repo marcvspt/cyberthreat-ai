@@ -83,6 +83,7 @@ export const TEXTS_GENERAL = {
         preparingAnalysis: 'Preparando contexto y consultando la IA...\n',
         invalidKeySources: (count: number) => `${count} ${count === 1 ? 'fuente' : 'fuentes'} con API Key no válida`,
         noDataSources: (count: number) => `${count} ${count === 1 ? 'fuente' : 'fuentes'} sin datos para este IoC`,
+        failedSources: (count: number) => `${count} ${count === 1 ? 'fuente con error de consulta' : 'fuentes con errores de consulta'}`,
     },
     errors: {
         siteConfiguration: 'Define site en astro.config.mjs para generar las URL públicas y el referer de OpenRouter.',
@@ -96,6 +97,7 @@ export const TEXTS_GENERAL = {
         invalidAiKey: (provider?: string) => `La API Key de ${provider} no es válida o no tiene permisos suficientes.`,
         aiUnavailable: (provider?: string) => `El servicio de ${provider} no está disponible en este momento.`,
         streamUnavailable: 'Streaming no disponible en la respuesta',
+        streamInterrupted: 'La conexión se cerró antes de terminar el análisis.',
         unknownError: 'Error desconocido',
         clientAnalysisError: 'No se pudo completar el análisis',
         rateLimitError: 'Demasiadas solicitudes',
@@ -106,7 +108,6 @@ export const TEXTS_GENERAL = {
         modelError: 'El modelo devolvió un error inesperado durante el análisis.',
         analysisError: 'No se pudo completar el análisis.',
         unsupportedIoc: 'Tipo de IoC no soportado',
-        emptyOpenRouterResponse: 'Respuesta sin cuerpo de OpenRouter',
         unsupportedPolySwarmHash: 'Tipo de hash no soportado por PolySwarm',
     },
     status: {

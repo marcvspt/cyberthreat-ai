@@ -113,7 +113,7 @@ La selección se guarda bajo `ctai:selected-model` y se recupera después del mo
 | `RATE_LIMIT_POINTS` | Solicitudes permitidas por IP durante la ventana | `5` |
 | `RATE_LIMIT_DURATION` | Duración de la ventana en segundos | `60` |
 
-El contador se consume antes de validar el IoC, por lo que las solicitudes inválidas también cuentan. El estado reside en memoria de cada proceso: se reinicia con el proceso y no se comparte entre instancias.
+Ambos valores deben ser enteros positivos. El contador se consume antes de validar el IoC, por lo que las solicitudes inválidas también cuentan. El estado reside en memoria de cada proceso: se reinicia con el proceso y no se comparte entre instancias.
 
 La IP se obtiene, en este orden, de `cf-connecting-ip`, `x-forwarded-for` o `x-real-ip`; si ninguna está presente se usa `unknown`. La configuración del proxy debe proporcionar cabeceras fiables para que el límite represente a cada cliente.
 
@@ -165,7 +165,7 @@ curl -N --get "http://localhost:4321/api/ctai" --data-urlencode "ioc=44d88612fea
 
 ### Eventos del stream
 
-Una respuesta de análisis correcta usa `200` y `Content-Type: text/event-stream`.
+Una respuesta de análisis que inicia el stream usa `200` y `Content-Type: text/event-stream`. Las respuestas de `/api/ctai` incluyen `Cache-Control: no-store` para evitar que se almacenen en caché.
 
 | Evento | Payload | Significado |
 | --- | --- | --- |
@@ -185,7 +185,9 @@ data: {"content":"**Veredicto:** Sospechoso"}
 
 ```
 
-Las fuentes se consultan en paralelo. Si alguna devuelve datos, el análisis continúa y comunica las advertencias de las demás. Si todas fallan y hay un error crítico reconocido de proveedor, se devuelve un error antes de invocar OpenRouter. Si todas indican ausencia de datos, se emiten `meta` y `done` sin consultar la IA ni generar texto de análisis.
+Las fuentes se consultan en paralelo. Cada consulta CTI dispone de 10 segundos, incluida la lectura del JSON. Si alguna devuelve datos, el análisis continúa y comunica las advertencias de las demás. La interfaz distingue entre ausencia de datos, claves no válidas y errores de consulta. Si todas fallan y hay un error crítico reconocido de proveedor, se devuelve un error antes de invocar OpenRouter. Si todas indican ausencia de datos, se emiten `meta` y `done` sin consultar la IA ni generar texto de análisis.
+
+La conexión con OpenRouter dispone de 60 segundos desde que se inicia la consulta, incluida la generación. Si se corta antes de la señal de fin o se agota ese plazo durante el stream, se emite `error`. Si el navegador pierde la conexión antes de recibir `done` o `error`, la interfaz muestra un fallo de análisis. El servidor cancela la conexión con OpenRouter cuando el adaptador le comunica la desconexión o cancela el stream de salida.
 
 ### Errores HTTP
 
@@ -296,7 +298,7 @@ El dominio se define únicamente en `site` de `astro.config.mjs`. Las canónicas
 
 - [ ] Añadir tests para validadores, errores y streaming.
 - [ ] Validar y normalizar las respuestas de los proveedores externos.
-- [ ] Incorporar cancelación y timeouts a las consultas.
+- [ ] Propagar la cancelación de la solicitud a las consultas CTI en curso.
 - [ ] Ampliar la documentación con ejemplos de respuesta de cada proveedor.
 - [ ] Analizar varios IoCs separados por comas, punto y coma o saltos de línea.
 - [ ] Importar lotes de indicadores desde CSV.
