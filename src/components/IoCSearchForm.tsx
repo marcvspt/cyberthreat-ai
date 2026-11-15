@@ -8,25 +8,26 @@ import ModelSelector from '@/components/ModelSelector.tsx';
 type IoCSearchFormProps = {
     loading: boolean;
     onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+    onCancel: () => void;
     hasCustomKeys: boolean;
-    onOpenSettings: () => void;
+    onOpenSettings: (trigger: HTMLButtonElement) => void;
     selectedModel: string;
     onModelChange: (model: string) => void;
 };
 
-export default function IoCSearchForm({ loading, onSubmit, hasCustomKeys, onOpenSettings, selectedModel, onModelChange }: IoCSearchFormProps) {
+export default function IoCSearchForm({ loading, onSubmit, onCancel, hasCustomKeys, onOpenSettings, selectedModel, onModelChange }: IoCSearchFormProps) {
     return (
         <form
             onSubmit={onSubmit}
-            className="w-full max-w-3xl "
+            className="w-full max-w-3xl"
         >
-            <div className="space-y-5 p-5 md:p-6">
+            <div className="space-y-5 sm:p-5 md:p-6">
                 <p className="space-y-2 text-sm text-center">
                     {TEXTS_GENERAL.search.description}
                 </p>
 
                 <div className="rounded-3xl border border-primary/30 bg-slate-950/45 p-3 shadow-inner shadow-black/10">
-                    <div className="mb-3 flex items-center justify-between px-2">
+                    <div className="mb-3 flex items-center justify-between gap-2 px-1 sm:px-2">
                         <label htmlFor="ioc-input" className="text-xs uppercase tracking-[0.28em] text-secondary/85">
                             {TEXTS_GENERAL.search.iocLabel}
                         </label>
@@ -37,18 +38,18 @@ export default function IoCSearchForm({ loading, onSubmit, hasCustomKeys, onOpen
                         <IoCInputField />
 
                         <button
-                            type="submit"
-                            className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-primary px-6 text-sm font-semibold text-slate-950 shadow-[0_14px_32px_rgba(195,166,253,0.34)] transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-70 md:min-w-44"
-                            disabled={loading}
+                            type={loading ? 'button' : 'submit'}
+                            onClick={loading ? (event) => {
+                                event.preventDefault();
+                                onCancel();
+                            } : undefined}
+                            className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-primary px-6 text-sm font-semibold text-slate-950 shadow-[0_14px_32px_rgba(195,166,253,0.34)] transition hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary md:min-w-44"
                         >
-                            <span>{loading ? TEXTS_GENERAL.search.analyzingButton : TEXTS_GENERAL.search.analyzeButton}</span>
-                            <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
-                                <path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
+                            <span>{loading ? TEXTS_GENERAL.search.cancelAnalysis : TEXTS_GENERAL.search.analyzeButton}</span>
                         </button>
                     </div>
 
-                    <div className="mt-3 flex flex-row items-center justify-between gap-3">
+                    <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <IocTypeChips />
                         <ModelSelector
                             loading={loading}

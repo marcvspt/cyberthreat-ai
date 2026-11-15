@@ -4,9 +4,9 @@ import { OPENROUTER_API_KEY, RATE_LIMIT_POINTS, RATE_LIMIT_DURATION } from 'astr
 import { toClientError } from '@/lib/server/errors.ts';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { jsonHeaders, jsonResponse, getClientIp } from '@/lib/server/http.ts';
-import { streamHeaders, createNoDataStream } from '@/lib/server/sse.ts';
+import { streamHeaders, createAnalysisMeta, createNoDataStream } from '@/lib/server/sse.ts';
 import { resolveIocType, resolveModel, resolveRequestApiKeys } from '@/lib/server/request.ts';
-import { analyzeIocByType, allSourcesEmpty } from '@/lib/server/analysis.ts';
+import { analyzeIocByType } from '@/lib/server/analysis.ts';
 import { createOpenRouterStream } from '@/lib/server/openrouter.ts';
 
 const rateLimiter = new RateLimiterMemory({
@@ -14,10 +14,11 @@ const rateLimiter = new RateLimiterMemory({
     duration: RATE_LIMIT_DURATION
 })
 
-export const GET = (async ({ request, site }) => {
+export const GET = (async (context) => {
+    const { request, site } = context;
     const { url } = request
     const urlObject = new URL(url)
-    const clientIp = getClientIp(request)
+    const clientIp = getClientIp(context)
 
     try {
         await rateLimiter.consume(`ctai:${clientIp}`, 1)
@@ -62,20 +63,22 @@ export const GET = (async ({ request, site }) => {
     }
 
     try {
-        const toolResult = await analyzeIocByType(iocType, ioc, requestKeys)
+        const toolResult = await analyzeIocByType(iocType, ioc, requestKeys, request.signal)
+        const meta = createAnalysisMeta(toolResult, resolvedModel)
 
-        if (allSourcesEmpty(toolResult)) {
-            const displayType = typeof toolResult?.type === 'string' ? toolResult.type : iocType
-            const stream = createNoDataStream(ioc, displayType, resolvedModel, toolResult.warnings ?? [])
+        if (toolResult.error) {
+            return jsonResponse({ ...toClientError(toolResult.error), meta }, 500)
+        }
+
+        if (!meta.hasEvidence) {
+            const stream = createNoDataStream(meta)
             return new Response(stream, { status: 200, headers: streamHeaders })
         }
 
-        const stream = await createOpenRouterStream({
-            ioc,
+        const stream = createOpenRouterStream({
             iocType,
-            toolResult,
+            meta,
             apiKey: requestKeys.openRouterKey,
-            model: resolvedModel,
             siteUrl: site.origin,
             requestSignal: request.signal
         })

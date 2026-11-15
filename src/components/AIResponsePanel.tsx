@@ -1,140 +1,135 @@
-import { TEXTS_GENERAL } from '@/lib/texts.ts';
-import { useEffect, useState } from 'react';
-import { Streamdown } from 'streamdown';
-import type { AnalyzeIoCMeta, StreamStatus } from '@/lib/types/analysis.ts';
-import { EMPTY_MESSAGES, getRandomMessage, getStatusMessage } from '@/lib/ui/status-messages.ts';
+import { lazy, Suspense } from 'react';
+import type { ComponentType } from 'react';
 import AlertBox from '@/components/AlertBox.tsx';
+import { EXTERNAL_RESOURCES } from '@/lib/links.ts';
+import { TEXTS_GENERAL } from '@/lib/texts.ts';
+import type { AnalyzeIoCMeta, StreamStatus } from '@/lib/types/analysis.ts';
 
 type AIResponsePanelProps = {
     data: string;
+    error: string;
     loading: boolean;
     status: StreamStatus;
     meta: AnalyzeIoCMeta | null;
 };
 
-export default function AIResponsePanel({ data, loading, status, meta }: AIResponsePanelProps) {
-    const [emptyMessage, setEmptyMessage] = useState(() => getRandomMessage(EMPTY_MESSAGES.idle));
-    const isError = status === 'error';
-    const titleId = 'analysis-results-title';
-    const statusId = 'analysis-results-status';
+const sourceLinks = [
+    EXTERNAL_RESOURCES.virustotal,
+    EXTERNAL_RESOURCES.abuseipdb,
+    EXTERNAL_RESOURCES.polyswarm,
+    EXTERNAL_RESOURCES.robtex,
+];
+const numberFormat = new Intl.NumberFormat('es-MX');
 
-    useEffect(() => {
-        if (data) {
-            return;
-        }
+function PlainAnalysisText({ data }: { data: string }) {
+    return <p className="whitespace-pre-wrap">{data}</p>;
+}
 
-        const messages = EMPTY_MESSAGES[status];
-        setEmptyMessage((current) => getRandomMessage(messages, current));
+const AnalysisMarkdown = lazy<ComponentType<{ data: string; streaming: boolean }>>(() => import('@/components/AnalysisMarkdown.tsx')
+    .catch(() => ({ default: PlainAnalysisText })));
 
-        if (status !== 'analyzing' && status !== 'streaming') {
-            return;
-        }
-
-        const intervalId = window.setInterval(() => {
-            setEmptyMessage((current) => getRandomMessage(messages, current));
-        }, 2400);
-
-        return () => window.clearInterval(intervalId);
-    }, [data, status]);
+export default function AIResponsePanel({ data, error, loading, status, meta }: AIResponsePanelProps) {
+    const results = TEXTS_GENERAL.results;
+    const warnings = meta?.warnings ?? [];
 
     return (
         <section
             className="w-full max-w-5xl overflow-hidden rounded-3xl border border-primary/30 bg-primary/12 shadow-2xl backdrop-blur"
-            role="region"
-            aria-labelledby={titleId}
-            aria-describedby={statusId}
+            aria-labelledby="analysis-results-title"
         >
-            <header className="flex items-center justify-between border-b border-primary/20 bg-primary/10 px-5 py-4">
-                <div>
-                    <h2 id={titleId} className="text-lg font-semibold text-white">{TEXTS_GENERAL.results.title}</h2>
-                </div>
-                <span className="rounded-full border border-secondary/35 bg-secondary/15 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-secondary">
-                    {TEXTS_GENERAL.status.labels[status]}
-                </span>
+            <header className="border-b border-primary/20 bg-primary/10 px-5 py-4">
+                <h2 id="analysis-results-title" className="text-lg font-semibold text-white">{results.title}</h2>
             </header>
 
-            <div className="space-y-4 px-5 py-5 text-gray-100">
-                {meta ? (
-                    <>
-                        <dl className="grid gap-2 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-slate-200 md:grid-cols-3 place-items-center">
-                            <div className="text-center">
-                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.results.iocLabel}</strong></dt>
-                                <dd className="break-all">{meta.ioc}</dd>
-                            </div>
-                            <div className="text-center">
-                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.results.typeLabel}</strong></dt>
-                                <dd className="break-all">{meta.type}</dd>
-                            </div>
-                            <div className="text-center">
-                                <dt className="text-secondary/85"><strong>{TEXTS_GENERAL.results.modelLabel}</strong></dt>
-                                <dd className="break-all">{meta.model}</dd>
-                            </div>
-                        </dl>
-                    </>
-                ) : null}
+            <div className="space-y-4 px-4 py-5 text-gray-100 sm:px-5">
+                <div className="flex items-center gap-3 text-sm text-slate-200" role="status">
+                    <span
+                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${loading ? 'bg-primary motion-safe:animate-pulse' : 'bg-secondary'}`}
+                        aria-hidden="true"
+                    />
+                    <span>{TEXTS_GENERAL.status.messages[status]}</span>
+                </div>
 
-                <div className="min-h-72 rounded-2xl border border-primary/25 bg-[linear-gradient(180deg,rgba(195,166,253,0.16),rgba(196,187,240,0.08))] p-5">
-                    <div id={statusId} className="mb-4 flex items-center gap-3 text-sm text-slate-300" role="status" aria-live="polite" aria-atomic="true">
-                        <span className={`h-2.5 w-2.5 rounded-full ${loading ? 'animate-pulse bg-primary' : 'bg-secondary'}`} aria-hidden="true"></span>
-                        <span>{getStatusMessage(status)}</span>
-                    </div>
+                {meta && (
+                    <dl className="grid gap-3 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-slate-200 sm:grid-cols-3">
+                        <div className="min-w-0">
+                            <dt className="font-semibold text-secondary">{results.iocLabel}</dt>
+                            <dd className="wrap-anywhere font-mono">{meta.ioc}</dd>
+                        </div>
+                        <div>
+                            <dt className="font-semibold text-secondary">{results.typeLabel}</dt>
+                            <dd>{meta.type}</dd>
+                        </div>
+                        {meta.hasEvidence && (
+                            <div className="min-w-0">
+                                <dt className="font-semibold text-secondary">{results.modelLabel}</dt>
+                                <dd className="wrap-anywhere">{meta.model}</dd>
+                            </div>
+                        )}
+                    </dl>
+                )}
 
-                    {meta?.warnings && meta.warnings.length > 0 && (
-                        <div className="mb-4">
+                {meta && (meta.sources.length > 0 || warnings.length > 0) && (
+                    <section aria-labelledby="analysis-sources-title" className="space-y-3">
+                        <h3 id="analysis-sources-title" className="font-semibold text-white">{results.sourcesTitle}</h3>
+                        {meta.sources.length > 0 && (
+                            <ul className="grid gap-3 sm:grid-cols-2">
+                                {meta.sources.map(({ name, metrics }) => {
+                                    const source = sourceLinks.find(({ label }) => label === name);
+                                    return (
+                                        <li key={name} className="min-w-0 rounded-2xl border border-primary/25 bg-slate-950/45 p-4">
+                                            <h4 className="mb-2 font-medium text-secondary">
+                                                {source ? (
+                                                    <a className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4" href={source.href} target="_blank" rel="noopener noreferrer">
+                                                        {name}
+                                                    </a>
+                                                ) : name}
+                                            </h4>
+                                            <dl className="space-y-1.5 text-sm">
+                                                {metrics.map(({ label, value }) => (
+                                                    <div key={label} className="flex justify-between gap-3">
+                                                        <dt>{label}</dt>
+                                                        <dd className="shrink-0 font-mono tabular-nums">
+                                                            {typeof value === 'number' ? numberFormat.format(value) : value ? TEXTS_GENERAL.common.yes : TEXTS_GENERAL.common.no}
+                                                        </dd>
+                                                    </div>
+                                                ))}
+                                            </dl>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                        {warnings.length > 0 && (
                             <AlertBox
                                 variant="warning"
                                 role="status"
                                 ariaLive="polite"
-                                lines={(() => {
-                                    const badKey = meta.warnings.filter((w) => w.reason === 'invalid_api_key')
-                                    const noData = meta.warnings.filter((w) => w.reason === 'not_found')
-                                    const failed = meta.warnings.filter((w) => w.reason !== 'invalid_api_key' && w.reason !== 'not_found')
-                                    const lines = []
-                                    if (badKey.length > 0) {
-                                        lines.push({
-                                            title: TEXTS_GENERAL.results.invalidKeySources(badKey.length),
-                                            detail: badKey.map((w) => w.source).join(', ')
-                                        })
-                                    }
-                                    if (noData.length > 0) {
-                                        lines.push({
-                                            title: TEXTS_GENERAL.results.noDataSources(noData.length),
-                                            detail: noData.map((w) => w.source).join(', ')
-                                        })
-                                    }
-                                    if (failed.length > 0) {
-                                        lines.push({
-                                            title: TEXTS_GENERAL.results.failedSources(failed.length),
-                                            detail: failed.map((w) => w.source).join(', ')
-                                        })
-                                    }
-                                    return lines
-                                })()}
+                                lines={warnings.map(({ message }) => ({ title: message }))}
                             />
-                        </div>
-                    )}
+                        )}
+                    </section>
+                )}
 
-                    {isError && data ? (
-                        <AlertBox
-                            variant="error"
-                            role="alert"
-                            ariaLive="assertive"
-                            lines={[{ title: TEXTS_GENERAL.results.errorTitle, detail: data.startsWith(TEXTS_GENERAL.common.errorPrefix) ? data.slice(TEXTS_GENERAL.common.errorPrefix.length).trimStart() : data }]}
-                        />
-                    ) : data ? (
-                        <div
-                            role="article"
-                            tabIndex={0}
-                            className="prose prose-invert max-w-none text-sm leading-7 text-slate-100"
-                        >
-                            <Streamdown>{data}</Streamdown>
-                        </div>
-                    ) : (
-                        <div className="font-mono text-sm leading-7 whitespace-pre-wrap text-slate-100" role="status" aria-live="polite" aria-atomic="true">
-                            <span className="italic text-slate-300/90">{emptyMessage}</span>
-                        </div>
-                    )}
-                </div>
+                {error && (
+                    <AlertBox
+                        variant="error"
+                        role="alert"
+                        lines={[{ title: results.errorTitle, detail: error }]}
+                    />
+                )}
+
+                {data && (
+                    <article
+                        aria-labelledby="analysis-verdict-title"
+                        className="space-y-3 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm leading-7 wrap-anywhere sm:p-5"
+                    >
+                        <h3 id="analysis-verdict-title" className="font-semibold text-white">{results.verdictTitle}</h3>
+                        <Suspense fallback={<PlainAnalysisText data={data} />}>
+                            <AnalysisMarkdown data={data} streaming={status === 'streaming'} />
+                        </Suspense>
+                    </article>
+                )}
             </div>
         </section>
     );

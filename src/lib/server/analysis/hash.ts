@@ -5,7 +5,7 @@ import { fetchPolySwarmHash } from '@/lib/server/providers/polyswarm.ts'
 import { detectHashType } from '@/lib/validation/ioc.ts'
 import { fetchVirusTotalHash } from '@/lib/server/providers/virustotal.ts'
 
-export async function analyzeHash(hash: string, vtKey?: string, polyKey?: string) {
+export async function analyzeHash(hash: string, signal: AbortSignal, vtKey?: string, polyKey?: string) {
     const ioc = hash.trim().toLowerCase()
     const hashType = detectHashType(ioc)
     const displayType = hashType ? `hash/${hashType}` : 'hash'
@@ -15,7 +15,7 @@ export async function analyzeHash(hash: string, vtKey?: string, polyKey?: string
     const sources = [
         {
             name: 'VirusTotal',
-            fetch: () => fetchVirusTotalHash(ioc, resolvedVTKey)
+            fetch: () => fetchVirusTotalHash(ioc, resolvedVTKey, signal)
         },
         {
             name: 'PolySwarm',
@@ -23,17 +23,18 @@ export async function analyzeHash(hash: string, vtKey?: string, polyKey?: string
                 if (!hashType) {
                     throw new Error(TEXTS_GENERAL.errors.unsupportedPolySwarmHash)
                 }
-                return fetchPolySwarmHash(ioc, hashType, resolvedPolyKey)
+                return fetchPolySwarmHash(ioc, hashType, resolvedPolyKey, signal)
             }
         }
     ]
 
-    const { results, warnings } = await fetchAllSources(sources)
+    const { results, warnings, error } = await fetchAllSources(sources, signal)
 
     return {
         ioc,
         type: displayType,
         sources: results,
+        error,
         ...(warnings.length ? { warnings } : {})
     }
 }

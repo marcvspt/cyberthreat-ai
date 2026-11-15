@@ -10,13 +10,12 @@ export const TEXTS_GENERAL = {
     },
     site: {
         name: "CyberThreat AI",
-        description: "Aplicación desarrollada para el Hackaton de Midudev + CubePath, con el objetivo de demostrar mis habilidades en desarrollo web y ciberseguridad.",
+        description: 'Analiza direcciones IPv4 e IPv6, dominios y hashes con fuentes de inteligencia de amenazas. Revisa la evidencia y obtén un veredicto de IA en español.',
     },
     common: {
-        errorPrefix: 'Error:',
         close: 'Cerrar',
-        hide: 'Ocultar',
-        show: 'Mostrar',
+        yes: 'Sí',
+        no: 'No',
         cancel: 'Cancelar',
         save: 'Guardar',
     },
@@ -30,12 +29,7 @@ export const TEXTS_GENERAL = {
         githubSponsors: 'GitHub Sponsors',
     },
     home: {
-        title: 'Inicio',
-        heroStart: '¡Comienza tu ',
-        heroIndicators: 'investigación de indicadores',
-        heroBridge: ' de compromiso a través de ',
-        heroModels: 'modelos LLM',
-        heroEnd: '!',
+        title: 'Analizador de indicadores de compromiso',
     },
     footer: {
         hackathonTitle: 'Hackaton Midudev - CubePath',
@@ -44,19 +38,18 @@ export const TEXTS_GENERAL = {
         licenseName: 'GNU General Public License v3.0',
     },
     search: {
-        description: 'Envía una IP, un dominio o un hash y un modelo de IA redacta un veredicto del IoC basandose en la información de distintas fuentes de datos de inteligencia de amenazas y analizadores de IoC.',
+        description: 'Consulta una IP, un dominio o un hash. Revisa qué encontró cada fuente de inteligencia de amenazas y el veredicto de la IA.',
         iocLabel: 'Indicador de compromiso',
-        analyzingButton: 'Analizando...',
         analyzeButton: 'Iniciar análisis',
+        cancelAnalysis: 'Cancelar análisis',
         iocPlaceholder: 'Ejemplo: 8.8.8.8, 2001:4860:4860::8888, example.org o 44d88612fea8a8f36de82e1278abb02f',
         iocTypes: ['IPv4 / IPv6', 'Dominio', 'MD5', 'SHA1', 'SHA256'],
         supportedIocTypes: 'Tipos de IoC soportados',
-        modelLabel: 'Modelo:',
-        loadingModel: 'Cargando modelo...',
+        modelLabel: 'Modelo',
     },
     settings: {
-        configureApiKeys: 'Configurar API keys',
-        apiKeysButton: 'API keys',
+        configureApiKeys: 'Configurar claves de API',
+        apiKeysButton: 'Claves de API',
         openRouterKeyHint: 'Requerida para el análisis de IA',
         virusTotalKeyHint: 'Usada para IP, dominio y hash',
         abuseIpDbKeyHint: 'Usada para análisis de IP',
@@ -66,8 +59,9 @@ export const TEXTS_GENERAL = {
         abuseIpDbKeyPlaceholder: 'Tu API key de AbuseIPDB',
         polySwarmKeyPlaceholder: 'Tu API key de PolySwarm',
         title: 'Configuración',
-        apiKeysTitle: 'API Keys',
-        keysStorageNotice: 'Las claves se guardan únicamente en tu navegador. Si las dejas vacías, el servidor usará las configuradas por defecto.',
+        apiKeysTitle: 'Claves de API',
+        keysStorageNotice: 'Las claves se guardan en tu navegador y se envían al servidor para realizar cada análisis. Si las dejas vacías, se usarán las claves del servidor.',
+        keyVisibility: (provider: string, visible: boolean) => `${visible ? 'Ocultar' : 'Mostrar'} clave de ${provider}`,
         clearKeys: 'Limpiar todas',
     },
     results: {
@@ -76,10 +70,23 @@ export const TEXTS_GENERAL = {
         typeLabel: 'Tipo:',
         modelLabel: 'Modelo:',
         errorTitle: 'Error en el análisis',
-        preparingAnalysis: 'Preparando contexto y consultando la IA...\n',
-        invalidKeySources: (count: number) => `${count} ${count === 1 ? 'fuente' : 'fuentes'} con API Key no válida`,
-        noDataSources: (count: number) => `${count} ${count === 1 ? 'fuente' : 'fuentes'} sin datos para este IoC`,
-        failedSources: (count: number) => `${count} ${count === 1 ? 'fuente con error de consulta' : 'fuentes con errores de consulta'}`,
+        sourcesTitle: 'Evidencia por fuente',
+        verdictTitle: 'Veredicto de IA',
+        metrics: {
+            malicious: 'Detecciones maliciosas',
+            suspicious: 'Detecciones sospechosas',
+            harmless: 'Resultados benignos',
+            undetected: 'Sin detección',
+            reputation: 'Reputación de la comunidad',
+            abuseConfidence: 'Confianza de abuso (0–100)',
+            abuseReports: 'Reportes de abuso',
+            polyScore: 'PolyScore',
+            polyMalicious: 'Motores que indican malicioso',
+            polyHarmless: 'Motores que indican benigno',
+            polyKnownGood: 'Archivo conocido como legítimo',
+            majesticRank: 'Posición en Majestic',
+            trancoRank: 'Posición en Tranco',
+        },
     },
     errors: {
         siteConfiguration: 'Define site en astro.config.mjs para generar las URL públicas y el referer de OpenRouter.',
@@ -94,6 +101,7 @@ export const TEXTS_GENERAL = {
         aiUnavailable: (provider?: string) => `El servicio de ${provider} no está disponible en este momento.`,
         streamUnavailable: 'Streaming no disponible en la respuesta',
         streamInterrupted: 'La conexión se cerró antes de terminar el análisis.',
+        streamInvalid: 'El servidor envió una respuesta de análisis con formato inesperado.',
         unknownError: 'Error desconocido',
         clientAnalysisError: 'No se pudo completar el análisis',
         rateLimitError: 'Demasiadas solicitudes',
@@ -107,44 +115,14 @@ export const TEXTS_GENERAL = {
         unsupportedPolySwarmHash: 'Tipo de hash no soportado por PolySwarm',
     },
     status: {
-        labels: {
-            idle: 'En espera', analyzing: 'Analizando', streaming: 'Generando respuesta', done: 'Completado', error: 'Error',
-        },
-        emptyMessages: {
-            idle: [
-                'Esperando un IoC para comenzar el análisis.',
-                'Lista para inspeccionar IPs, dominios y hashes.',
-                'Introduce un indicador y levantaré evidencia técnica.'
-            ],
-            analyzing: [
-                'Investigando el indicador y cruzando señales iniciales...',
-                'Recabando datos de las fuentes de inteligencia...',
-                'Consultando reputación, contexto y trazas disponibles...',
-                'Buscando coincidencias y patrones de riesgo...'
-            ],
-            streaming: [
-                'La IA está redactando la respuesta...',
-                'Sintetizando hallazgos y priorizando señales relevantes...',
-                'Consultando contexto adicional en la deep web...',
-                'Consolidando evidencias para emitir un veredicto...'
-            ],
-            done: [
-                'El análisis terminó, pero todavía no hay texto para mostrar.',
-                'La respuesta llegó vacía; revisa la siguiente consulta.',
-                'No se recibió contenido visible del modelo en esta ejecución.'
-            ],
-            error: [
-                'La consulta se interrumpió antes de devolver contenido.',
-                'Hubo un error durante el análisis del IoC.',
-                'No fue posible completar la respuesta de la IA.'
-            ]
-        },
         messages: {
             idle: 'Envía un IoC para iniciar el análisis',
-            analyzing: 'Recolectando evidencias de las herramientas...',
-            streaming: 'La IA está redactando la respuesta...',
+            analyzing: 'Consultando las fuentes de inteligencia de amenazas…',
+            streaming: 'Generando el veredicto con la evidencia disponible…',
             done: 'Respuesta completada',
-            error: 'Algo salió mal durante el análisis',
+            no_data: 'Sin datos en las fuentes consultadas',
+            cancelled: 'Análisis cancelado',
+            error: 'Análisis interrumpido',
         },
     },
 };

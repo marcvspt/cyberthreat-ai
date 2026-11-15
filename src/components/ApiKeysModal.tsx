@@ -1,9 +1,8 @@
 import { TEXTS_GENERAL } from '@/lib/texts.ts';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ApiKeys } from '@/lib/types/api-keys.ts';
 
 type ApiKeysModalProps = {
-    isOpen: boolean;
     keys: ApiKeys;
     onSave: (keys: ApiKeys) => void;
     onClose: () => void;
@@ -36,19 +35,21 @@ const KEY_CONFIG = [
     },
 ] as const;
 
-export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysModalProps) {
+export default function ApiKeysModal({ keys, onSave, onClose }: ApiKeysModalProps) {
+    const dialogRef = useRef<HTMLDialogElement>(null);
     const [draft, setDraft] = useState<ApiKeys>(keys);
     const [visible, setVisible] = useState<Partial<Record<keyof ApiKeys, boolean>>>({});
 
-    // Sync draft when modal opens
     useEffect(() => {
-        if (isOpen) {
-            setDraft(keys);
-            setVisible({});
-        }
-    }, [isOpen]);
+        const dialog = dialogRef.current;
+        dialog?.showModal();
+        return () => dialog?.close();
+    }, []);
 
-    if (!isOpen) return null;
+    const close = () => {
+        dialogRef.current?.close();
+        onClose();
+    };
 
     const handleChange = (id: keyof ApiKeys, value: string) => {
         setDraft((prev) => ({ ...prev, [id]: value }));
@@ -60,7 +61,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
 
     const handleSave = () => {
         onSave(draft);
-        onClose();
+        close();
     };
 
     const handleClear = () => {
@@ -70,56 +71,60 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
-                onClick={onClose}
-            />
-
-            {/* Card */}
-            <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-primary/30 bg-[linear-gradient(145deg,rgba(195,166,253,0.18),rgba(196,187,240,0.08))] shadow-[0_24px_80px_rgba(195,166,253,0.2)] backdrop-blur">
+        <dialog
+            ref={dialogRef}
+            aria-labelledby="api-keys-title"
+            aria-describedby="api-keys-description"
+            onCancel={(event) => {
+                event.preventDefault();
+                close();
+            }}
+            onClick={(event) => {
+                if (event.target === event.currentTarget) close();
+            }}
+            className="fixed inset-0 m-auto max-h-[calc(100dvh_-_2rem)] w-[calc(100%_-_2rem)] max-w-lg overflow-y-auto rounded-3xl border border-primary/30 bg-slate-950 text-white shadow-2xl backdrop:bg-slate-950/80 backdrop:backdrop-blur-sm"
+        >
+            <div>
                 <header className="flex items-center justify-between border-b border-primary/20 bg-primary/10 px-6 py-4">
                     <div>
                         <p className="text-xs uppercase tracking-[0.3em] text-secondary/90">{TEXTS_GENERAL.settings.title}</p>
-                        <h2 className="text-lg font-semibold text-white">{TEXTS_GENERAL.settings.apiKeysTitle}</h2>
+                        <h2 id="api-keys-title" className="text-lg font-semibold text-white">{TEXTS_GENERAL.settings.apiKeysTitle}</h2>
                     </div>
                     <button
                         type="button"
-                        onClick={onClose}
-                        className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"
-                        title={TEXTS_GENERAL.common.close}
+                        onClick={close}
+                        className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+                        aria-label={TEXTS_GENERAL.common.close}
                     >
-                        <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
-                            <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
+                            <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </button>
                 </header>
 
                 <div className="space-y-4 p-6">
-                    <p className="rounded-2xl border border-primary/20 bg-primary/8 px-4 py-3 text-xs leading-5 text-slate-300">
+                    <p id="api-keys-description" className="rounded-2xl border border-primary/20 bg-primary/8 px-4 py-3 text-sm leading-5 text-slate-300">
                         {TEXTS_GENERAL.settings.keysStorageNotice}
                     </p>
 
                     {KEY_CONFIG.map(({ id, label, placeholder, hint }) => (
                         <div key={id} className="space-y-1.5">
-                            <div className="flex items-baseline justify-between px-1">
+                            <div className="flex flex-wrap items-baseline justify-between gap-x-2 px-1">
                                 <label
                                     htmlFor={`key-${id}`}
                                     className="text-xs font-medium uppercase tracking-[0.25em] text-secondary/85"
                                 >
                                     {label}
                                 </label>
-                                <span className="text-[10px] text-slate-500">{hint}</span>
+                                <span id={`key-${id}-hint`} className="text-xs text-slate-300">{hint}</span>
                             </div>
                             <div className="relative">
                                 <input
                                     id={`key-${id}`}
                                     type={visible[id] ? 'text' : 'password'}
                                     value={draft[id]}
-                                    onInput={(e) =>
-                                        handleChange(id, (e.target as HTMLInputElement).value)
-                                    }
+                                    onChange={(event) => handleChange(id, event.currentTarget.value)}
+                                    aria-describedby={`key-${id}-hint`}
                                     placeholder={placeholder}
                                     className="h-11 w-full rounded-2xl border border-primary/30 bg-white/8 px-4 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-secondary focus:bg-white/10 focus:shadow-[0_0_0_3px_rgba(196,187,240,0.12)]"
                                     autoComplete="off"
@@ -128,17 +133,17 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                                 <button
                                     type="button"
                                     onClick={() => toggleVisible(id)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-200"
-                                    title={visible[id] ? TEXTS_GENERAL.common.hide : TEXTS_GENERAL.common.show}
+                                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 transition hover:text-slate-200 focus-visible:outline-2 focus-visible:outline-secondary"
+                                    aria-label={TEXTS_GENERAL.settings.keyVisibility(label, Boolean(visible[id]))}
                                 >
                                     {visible[id] ? (
-                                        <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
-                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke-linecap="round" stroke-linejoin="round" />
-                                            <line x1="1" y1="1" x2="23" y2="23" stroke-linecap="round" stroke-linejoin="round" />
+                                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" strokeLinecap="round" strokeLinejoin="round" />
+                                            <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                     ) : (
-                                        <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-linecap="round" stroke-linejoin="round" />
+                                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeLinecap="round" strokeLinejoin="round" />
                                             <circle cx="12" cy="12" r="3" />
                                         </svg>
                                     )}
@@ -148,7 +153,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                     ))}
                 </div>
 
-                <footer className="flex items-center justify-between border-t border-primary/20 bg-primary/5 px-6 py-4">
+                <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-primary/20 bg-primary/5 px-6 py-4">
                     <button
                         type="button"
                         onClick={handleClear}
@@ -159,7 +164,7 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                     <div className="flex gap-3">
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={close}
                             className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/10"
                         >
                             {TEXTS_GENERAL.common.cancel}
@@ -174,6 +179,6 @@ export default function ApiKeysModal({ isOpen, keys, onSave, onClose }: ApiKeysM
                     </div>
                 </footer>
             </div>
-        </div>
+        </dialog>
     );
 }

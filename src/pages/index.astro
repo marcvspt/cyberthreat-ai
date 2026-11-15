@@ -7,13 +7,7 @@ import App from "@/components/App.tsx";
 
 <BaseLayout title={TEXTS_GENERAL.home.title}>
 	<main class="py-8">
-		<h1 class="text-center text-wrap text-3xl text-secondary font-semibold">
-			{TEXTS_GENERAL.home.heroStart}<span class="text-primary font-bold"
-				>{TEXTS_GENERAL.home.heroIndicators}</span
-			>{TEXTS_GENERAL.home.heroBridge}<span class="text-primary font-bold"
-				>{TEXTS_GENERAL.home.heroModels}</span
-			>{TEXTS_GENERAL.home.heroEnd}
-		</h1>
+		<h1 class="text-center text-3xl font-semibold text-secondary text-balance">{TEXTS_GENERAL.home.title}</h1>
 		<App client:load />
 	</main>
 </BaseLayout>
