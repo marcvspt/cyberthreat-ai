@@ -45,15 +45,19 @@ export default defineConfig({
         access: 'secret',
         optional: false
       }),
-      RATE_LIMIT_POINTS: envField.string({
+      RATE_LIMIT_POINTS: envField.number({
         context: 'server',
         access: 'secret',
-        optional: false
+        optional: false,
+        int: true,
+        min: 1
       }),
-      RATE_LIMIT_DURATION: envField.string({
+      RATE_LIMIT_DURATION: envField.number({
         context: 'server',
         access: 'secret',
-        optional: false
+        optional: false,
+        int: true,
+        min: 1
       }),
 
     }

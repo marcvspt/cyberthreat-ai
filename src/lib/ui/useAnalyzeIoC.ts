@@ -30,6 +30,8 @@ export function useAnalyzeIoC(keys: ApiKeys) {
         setMeta(null);
         setData(TEXTS_GENERAL.results.preparingAnalysis);
 
+        let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+
         try {
             const requestHeaders = buildRequestHeaders(keys);
 
@@ -48,15 +50,16 @@ export function useAnalyzeIoC(keys: ApiKeys) {
                 throw new Error(TEXTS_GENERAL.errors.streamUnavailable);
             }
 
-            const reader = response.body.getReader();
+            reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
+            let finished = false;
 
-            while (true) {
+            while (!finished) {
                 const { done, value } = await reader.read();
 
                 if (done) {
-                    break;
+                    throw new Error(TEXTS_GENERAL.errors.streamInterrupted);
                 }
 
                 buffer += decoder.decode(value, { stream: true });
@@ -97,10 +100,14 @@ export function useAnalyzeIoC(keys: ApiKeys) {
                     if (event.event === 'error') {
                         setData(`${TEXTS_GENERAL.common.errorPrefix} ${buildUiErrorMessage(payload)}`);
                         setStatus('error');
+                        finished = true;
+                        break;
                     }
 
                     if (event.event === 'done') {
                         setStatus('done');
+                        finished = true;
+                        break;
                     }
                 }
             }
@@ -109,6 +116,10 @@ export function useAnalyzeIoC(keys: ApiKeys) {
             setData(`${TEXTS_GENERAL.common.errorPrefix} ${msg}`);
             setStatus('error');
         } finally {
+            if (reader) {
+                await reader.cancel().catch(() => {});
+                reader.releaseLock();
+            }
             setLoading(false);
         }
 

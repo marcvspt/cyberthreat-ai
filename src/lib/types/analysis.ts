@@ -41,6 +41,7 @@ export type OpenRouterStreamParams = {
     apiKey: string;
     model: string;
     siteUrl: string;
+    requestSignal: AbortSignal;
 };
 
 export type ErrorType = 'not_found' | 'api_unavailable' | 'invalid_api_key' | 'model_error' | 'unknown';

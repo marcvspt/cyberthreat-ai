@@ -1,4 +1,3 @@
-import { TEXTS_GENERAL } from '@/lib/texts.ts';
 import { SITE_DATA } from '@/lib/site.ts';
 import { ProviderError, toClientError } from '@/lib/server/errors.ts';
 import { buildPrompt } from '@/lib/server/prompts/analysis.ts';
@@ -6,10 +5,7 @@ import { createSseEvent } from '@/lib/server/sse.ts';
 import type { OpenRouterStreamParams, ErrorType } from '@/lib/types/analysis.ts';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-
-function buildDisplayModel(requestedModel: string, routedModel: string) {
-    return routedModel || requestedModel
-}
+const OPENROUTER_TIMEOUT_MS = 60_000;
 
 export async function createOpenRouterStream({
     ioc,
@@ -17,17 +13,25 @@ export async function createOpenRouterStream({
     toolResult,
     apiKey,
     model,
-    siteUrl
+    siteUrl,
+    requestSignal
 }: OpenRouterStreamParams) {
     if (!apiKey) {
         throw new ProviderError('ai', 'OpenRouter', 'invalid_api_key')
     }
 
+    const streamController = new AbortController()
+    const signal = AbortSignal.any([
+        requestSignal,
+        streamController.signal,
+        AbortSignal.timeout(OPENROUTER_TIMEOUT_MS)
+    ])
     let response: Response
 
     try {
         response = await fetch(OPENROUTER_API_URL, {
             method: 'POST',
+            signal,
             headers: {
                 Authorization: `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
@@ -48,28 +52,24 @@ export async function createOpenRouterStream({
             })
         })
     } catch {
-        throw new ProviderError('ai', 'OpenRouter')
+        throw new ProviderError('ai', 'OpenRouter', 'api_unavailable')
     }
 
     if (!response.ok) {
+        streamController.abort()
         let errorType: ErrorType = 'unknown'
         if (response.status === 401 || response.status === 403) {
             errorType = 'invalid_api_key'
-        } else if (response.status >= 500) {
+        } else if (response.status === 429 || response.status >= 500) {
             errorType = 'api_unavailable'
         }
 
-        let detail: string | undefined
-        try {
-            const body = await response.json()
-            detail = typeof body?.error?.message === 'string' ? body.error.message : undefined
-        } catch { /* ignorar si el cuerpo no es JSON */ }
-
-        throw new ProviderError('ai', 'OpenRouter', errorType, detail)
+        throw new ProviderError('ai', 'OpenRouter', errorType)
     }
 
     if (!response.body) {
-        throw new Error(TEXTS_GENERAL.errors.emptyOpenRouterResponse)
+        streamController.abort()
+        throw new ProviderError('ai', 'OpenRouter', 'api_unavailable')
     }
 
     const decoder = new TextDecoder()
@@ -95,25 +95,28 @@ export async function createOpenRouterStream({
                 while (true) {
                     const { done, value } = await reader.read()
 
+                    if (streamController.signal.aborted) {
+                        return
+                    }
                     if (done) {
-                        break
+                        throw new ProviderError('ai', 'OpenRouter', 'api_unavailable')
                     }
 
                     buffer += decoder.decode(value, { stream: true })
-                    const parts = buffer.split('\n\n')
+                    const parts = buffer.split(/\r?\n\r?\n/)
                     buffer = parts.pop() ?? ''
 
                     for (const part of parts) {
-                        const lines = part.split('\n')
+                        const lines = part.split(/\r?\n/)
                         const dataLines = lines
                             .filter((line) => line.startsWith('data:'))
-                            .map((line) => line.slice(5).trim())
+                            .map((line) => line.slice(5).replace(/^ /, ''))
 
                         if (dataLines.length === 0) {
                             continue
                         }
 
-                        const payload = dataLines.join('')
+                        const payload = dataLines.join('\n').trim()
 
                         if (payload === '[DONE]') {
                             controller.enqueue(encoder.encode(createSseEvent('done', { done: true })))
@@ -122,39 +125,42 @@ export async function createOpenRouterStream({
                         }
 
                         const parsed = JSON.parse(payload)
+                        const choice = parsed?.choices?.[0]
 
-                        if (parsed?.error) {
-                            const msg = typeof parsed.error?.message === 'string'
-                                ? parsed.error.message
-                                : undefined
-                            throw new ProviderError('ai', 'OpenRouter', 'model_error', msg)
+                        if (parsed?.error || choice?.finish_reason === 'error') {
+                            throw new ProviderError('ai', 'OpenRouter', 'model_error')
                         }
                         const routedModel = typeof parsed?.model === 'string' ? parsed.model : ''
 
                         if (!routedModelSent && routedModel) {
                             routedModelSent = true
                             controller.enqueue(encoder.encode(createSseEvent('model', {
-                                model: buildDisplayModel(model, routedModel)
+                                model: routedModel
                             })))
                         }
 
-                        const deltaChoice = parsed?.choices?.[0]?.delta
-                        const delta = deltaChoice?.content || deltaChoice?.reasoning
+                        const delta = choice?.delta?.content || choice?.delta?.reasoning
 
                         if (typeof delta === 'string' && delta.length > 0) {
                             controller.enqueue(encoder.encode(createSseEvent('chunk', { content: delta })))
                         }
                     }
                 }
-
-                controller.enqueue(encoder.encode(createSseEvent('done', { done: true })))
-                controller.close()
             } catch (error: unknown) {
-                controller.enqueue(encoder.encode(createSseEvent('error', toClientError(error))))
-                controller.close()
+                if (!streamController.signal.aborted) {
+                    const providerError = error instanceof ProviderError
+                        ? error
+                        : new ProviderError('ai', 'OpenRouter', 'api_unavailable')
+                    controller.enqueue(encoder.encode(createSseEvent('error', toClientError(providerError))))
+                    controller.close()
+                }
             } finally {
+                streamController.abort()
                 reader.releaseLock()
             }
+        },
+        cancel() {
+            streamController.abort()
         }
     })
 }

@@ -1,4 +1,7 @@
-export const jsonHeaders = { 'Content-Type': 'application/json' };
+export const jsonHeaders = {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-store'
+};
 
 export function jsonResponse(body: unknown, status: number) {
     return new Response(JSON.stringify(body), {

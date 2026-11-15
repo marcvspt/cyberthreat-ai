@@ -2,7 +2,7 @@ import type { SourceWarning } from '@/lib/types/analysis.ts';
 
 export const streamHeaders = {
     'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache, no-transform',
+    'Cache-Control': 'no-store, no-transform',
     Connection: 'keep-alive',
 };
 

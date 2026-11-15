@@ -87,7 +87,8 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                                 ariaLive="polite"
                                 lines={(() => {
                                     const badKey = meta.warnings.filter((w) => w.reason === 'invalid_api_key')
-                                    const noData = meta.warnings.filter((w) => w.reason !== 'invalid_api_key')
+                                    const noData = meta.warnings.filter((w) => w.reason === 'not_found')
+                                    const failed = meta.warnings.filter((w) => w.reason !== 'invalid_api_key' && w.reason !== 'not_found')
                                     const lines = []
                                     if (badKey.length > 0) {
                                         lines.push({
@@ -99,6 +100,12 @@ export default function AIResponsePanel({ data, loading, status, meta }: AIRespo
                                         lines.push({
                                             title: TEXTS_GENERAL.results.noDataSources(noData.length),
                                             detail: noData.map((w) => w.source).join(', ')
+                                        })
+                                    }
+                                    if (failed.length > 0) {
+                                        lines.push({
+                                            title: TEXTS_GENERAL.results.failedSources(failed.length),
+                                            detail: failed.map((w) => w.source).join(', ')
                                         })
                                     }
                                     return lines

@@ -10,8 +10,8 @@ import { analyzeIocByType, allSourcesEmpty } from '@/lib/server/analysis.ts';
 import { createOpenRouterStream } from '@/lib/server/openrouter.ts';
 
 const rateLimiter = new RateLimiterMemory({
-    points: Number(RATE_LIMIT_POINTS),
-    duration: Number(RATE_LIMIT_DURATION)
+    points: RATE_LIMIT_POINTS,
+    duration: RATE_LIMIT_DURATION
 })
 
 export const GET = (async ({ request, site }) => {
@@ -76,7 +76,8 @@ export const GET = (async ({ request, site }) => {
             toolResult,
             apiKey: requestKeys.openRouterKey,
             model: resolvedModel,
-            siteUrl: site.origin
+            siteUrl: site.origin,
+            requestSignal: request.signal
         })
 
         return new Response(stream, {

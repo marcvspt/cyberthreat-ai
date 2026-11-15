@@ -2,10 +2,11 @@ import type { AiModel } from '@/lib/types/model.ts';
 import { TEXTS_GENERAL } from '@/lib/texts.ts';
 
 export const AVAILABLE_MODELS: AiModel[] = [
-    { id: 'openrouter/auto', label: TEXTS_GENERAL.models.auto, provider: TEXTS_GENERAL.brands.openrouter },
-    { id: 'openrouter/free', label: TEXTS_GENERAL.models.free, provider: TEXTS_GENERAL.brands.openrouter },
-    { id: 'poolside/laguna-xs-2.1:free', label: TEXTS_GENERAL.models.poolside, provider: TEXTS_GENERAL.brands.poolside },
-    { id: 'inclusionai/ling-3.0-flash:free', label: TEXTS_GENERAL.models.novita, provider: TEXTS_GENERAL.brands.novita },
+    { id: 'openrouter/auto', label: 'Default - OpenRouter (auto)', provider: TEXTS_GENERAL.brands.openrouter },
+    { id: 'openrouter/free', label: 'OpenRouter (free)', provider: TEXTS_GENERAL.brands.openrouter },
+    { id: 'nvidia/nemotron-3-ultra-550b-a55b:free', label: 'NVIDIA: Nemotron 3 Ultra (free)', provider: 'NVIDIA' },
+    { id: 'google/gemma-4-26b-a4b-it:free', label: 'Google: Gemma 4 26B A4B (free)', provider: 'Google AI Studio' },
+    { id: 'liquid/lfm-3-1.7b:free', label: 'LiquidAI: LFM3-1.7B (free)', provider: 'Liquid' },
 ];
 
 export const DEFAULT_MODEL = 'openrouter/auto';
