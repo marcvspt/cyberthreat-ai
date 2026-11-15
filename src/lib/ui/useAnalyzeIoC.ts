@@ -1,130 +1,129 @@
-import { TEXTS_GENERAL } from '@/lib/texts.ts';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { readSse } from '@/lib/sse.ts';
+import { TEXTS_GENERAL } from '@/lib/texts.ts';
 import type { ApiKeys } from '@/lib/types/api-keys.ts';
 import type { StreamStatus, AnalyzeIoCMeta } from '@/lib/types/analysis.ts';
 import { usePersistentModel } from '@/lib/ui/usePersistentModel.ts';
-import { buildRequestHeaders, buildUiErrorMessage, parseSseEvents } from '@/lib/ui/ctai-client.ts';
+import { buildRequestHeaders, buildUiErrorMessage, parseAnalysisMeta } from '@/lib/ui/ctai-client.ts';
+
 export function useAnalyzeIoC(keys: ApiKeys) {
     const { selectedModel, setSelectedModel } = usePersistentModel();
     const [data, setData] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [status, setStatus] = useState<StreamStatus>('idle');
     const [meta, setMeta] = useState<AnalyzeIoCMeta | null>(null);
+    const activeRequest = useRef<AbortController | null>(null);
+    const loading = status === 'analyzing' || status === 'streaming';
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const form = e.currentTarget;
-        const formData = new FormData(form);
-        const ioc = (formData.get('ioc-input') as string).trim();
+    useEffect(() => () => {
+        activeRequest.current?.abort();
+        activeRequest.current = null;
+    }, []);
 
-        if (!ioc) {
-            setData('');
-            setMeta(null);
-            setStatus('idle');
-            return;
-        }
+    const cancelAnalysis = () => {
+        const request = activeRequest.current;
+        if (!request) return;
+        activeRequest.current = null;
+        request.abort();
+        setData('');
+        setStatus('cancelled');
+    };
 
-        setLoading(true);
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (activeRequest.current) return;
+
+        const form = event.currentTarget;
+        const input = new FormData(form).get('ioc-input');
+        const ioc = typeof input === 'string' ? input.trim() : '';
+        if (!ioc) return;
+
+        const request = new AbortController();
+        activeRequest.current = request;
         setStatus('analyzing');
         setMeta(null);
-        setData(TEXTS_GENERAL.results.preparingAnalysis);
+        setData('');
+        setError('');
 
-        let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+        const fail = (message: string) => {
+            setData('');
+            setError(message);
+            setStatus('error');
+        };
 
         try {
-            const requestHeaders = buildRequestHeaders(keys);
-
-            const response = await fetch(`/api/ctai?ioc=${encodeURIComponent(ioc)}&model=${encodeURIComponent(selectedModel)}`, {
-                headers: requestHeaders
+            const query = new URLSearchParams({ ioc, model: selectedModel });
+            const response = await fetch(`/api/ctai?${query}`, {
+                headers: buildRequestHeaders(keys),
+                signal: request.signal,
             });
+            if (activeRequest.current !== request) return;
 
             if (!response.ok) {
-                const result = await response.json();
-                setData(`${TEXTS_GENERAL.common.errorPrefix} ${buildUiErrorMessage(result)}`);
-                setStatus('error');
+                const result = await response.json().catch(() => null);
+                if (activeRequest.current === request) {
+                    if (result?.meta) setMeta(parseAnalysisMeta(result.meta));
+                    fail(buildUiErrorMessage(result));
+                }
                 return;
             }
 
             if (!response.body) {
-                throw new Error(TEXTS_GENERAL.errors.streamUnavailable);
+                fail(TEXTS_GENERAL.errors.streamUnavailable);
+                return;
             }
 
-            reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-            let finished = false;
+            let hasEvidence: boolean | undefined;
+            for await (const { event: name, data: frame } of readSse(response.body)) {
+                if (activeRequest.current !== request) return;
+                const payload = JSON.parse(frame);
 
-            while (!finished) {
-                const { done, value } = await reader.read();
-
-                if (done) {
-                    throw new Error(TEXTS_GENERAL.errors.streamInterrupted);
-                }
-
-                buffer += decoder.decode(value, { stream: true });
-                const parts = buffer.split('\n\n');
-                buffer = parts.pop() ?? '';
-
-                for (const event of parseSseEvents(parts.join('\n\n'))) {
-                    if (!event.data) {
-                        continue;
-                    }
-
-                    const payload = JSON.parse(event.data);
-
-                    if (event.event === 'meta') {
-                        setMeta(payload);
-                        setData('');
-                        // no cambia status aquí: lo hará 'chunk' (streaming) o 'done' (sin datos)
-                    }
-
-                    if (event.event === 'model' && typeof payload.model === 'string') {
-                        setMeta((current) => {
-                            if (!current) {
-                                return current;
-                            }
-
-                            return {
-                                ...current,
-                                model: payload.model
-                            };
-                        });
-                    }
-
-                    if (event.event === 'chunk' && typeof payload.content === 'string') {
-                        setStatus('streaming');
-                        setData((current) => current + payload.content);
-                    }
-
-                    if (event.event === 'error') {
-                        setData(`${TEXTS_GENERAL.common.errorPrefix} ${buildUiErrorMessage(payload)}`);
-                        setStatus('error');
-                        finished = true;
+                switch (name) {
+                    case 'meta': {
+                        const analysisMeta = parseAnalysisMeta(payload);
+                        setMeta(analysisMeta);
+                        hasEvidence = analysisMeta.hasEvidence;
+                        if (hasEvidence) setStatus('streaming');
                         break;
                     }
-
-                    if (event.event === 'done') {
-                        setStatus('done');
-                        finished = true;
+                    case 'model': {
+                        const model: unknown = payload?.model;
+                        if (typeof model === 'string') {
+                            setMeta((current) => current ? { ...current, model } : current);
+                        }
                         break;
                     }
+                    case 'chunk': {
+                        const content: unknown = payload?.content;
+                        if (typeof content === 'string') setData((current) => current + content);
+                        break;
+                    }
+                    case 'error':
+                        fail(buildUiErrorMessage(payload));
+                        return;
+                    case 'done':
+                        if (payload?.done !== true || hasEvidence === undefined) {
+                            fail(TEXTS_GENERAL.errors.streamInvalid);
+                            return;
+                        }
+                        setStatus(hasEvidence ? 'done' : 'no_data');
+                        form.reset();
+                        return;
                 }
             }
-        } catch (error: unknown) {
-            const msg = error instanceof Error ? error.message : TEXTS_GENERAL.errors.unknownError;
-            setData(`${TEXTS_GENERAL.common.errorPrefix} ${msg}`);
-            setStatus('error');
+
+            if (activeRequest.current === request) fail(TEXTS_GENERAL.errors.streamInterrupted);
+        } catch (cause: unknown) {
+            if (activeRequest.current === request) {
+                const invalidStream = cause instanceof SyntaxError
+                    || (cause instanceof Error && cause.message === TEXTS_GENERAL.errors.streamInvalid);
+                fail(invalidStream ? TEXTS_GENERAL.errors.streamInvalid : TEXTS_GENERAL.errors.streamInterrupted);
+            }
         } finally {
-            if (reader) {
-                await reader.cancel().catch(() => {});
-                reader.releaseLock();
-            }
-            setLoading(false);
+            if (activeRequest.current === request) activeRequest.current = null;
         }
-
-        form.reset();
     };
 
-    return { data, loading, status, meta, selectedModel, setSelectedModel, handleSubmit };
+    return { data, error, loading, status, meta, selectedModel, setSelectedModel, handleSubmit, cancelAnalysis };
 }

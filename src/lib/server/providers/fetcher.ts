@@ -1,9 +1,6 @@
 import { TEXTS_GENERAL } from '@/lib/texts.ts';
 import { ProviderError } from '@/lib/server/errors.ts'
-import type { CtiSourceRequest, CtiSourceResult, ErrorType } from '@/lib/types/analysis.ts';
-
-type SourceResult = CtiSourceResult
-type SourceRequest = CtiSourceRequest
+import type { CtiSourceRequest, ErrorType, SourceEvidence, SourceMetric, SourceWarning } from '@/lib/types/analysis.ts';
 
 const CTI_TIMEOUT_MS = 10_000
 
@@ -42,48 +39,51 @@ export async function fetchProviderJson(
     }
 }
 
-function warningMessageFor(name: string, reason: unknown): string {
-    if (reason instanceof ProviderError) {
-        if (reason.errorType === 'not_found') return TEXTS_GENERAL.errors.sourceNotFound(name)
-        if (reason.errorType === 'invalid_api_key') return TEXTS_GENERAL.errors.sourceInvalidKey(name)
-        if (reason.errorType === 'api_unavailable') return TEXTS_GENERAL.errors.sourceUnavailable(name)
+export function collectMetrics(values: Record<string, number | boolean | null | undefined>): SourceMetric[] {
+    const metrics: SourceMetric[] = []
+    for (const [label, value] of Object.entries(values)) {
+        if (value != null) metrics.push({ label, value })
     }
+    return metrics
+}
+
+function warningMessageFor(name: string, reason: ErrorType): string {
+    if (reason === 'not_found') return TEXTS_GENERAL.errors.sourceNotFound(name)
+    if (reason === 'invalid_api_key') return TEXTS_GENERAL.errors.sourceInvalidKey(name)
+    if (reason === 'api_unavailable') return TEXTS_GENERAL.errors.sourceUnavailable(name)
     return TEXTS_GENERAL.errors.sourceUnknownError(name)
 }
 
-export async function fetchAllSources(sources: SourceRequest[]): Promise<{
-    results: SourceResult[]
-    warnings: Array<{ source: string; message: string; reason?: ErrorType }>
+export async function fetchAllSources(sources: CtiSourceRequest[], signal: AbortSignal): Promise<{
+    results: SourceEvidence[]
+    warnings: SourceWarning[]
+    error?: ProviderError
 }> {
-    const settled = await Promise.allSettled(sources.map((s) => s.fetch()))
+    signal.throwIfAborted()
+    const settled = await Promise.allSettled(sources.map(async (source) => {
+        const metrics = await source.fetch()
+        if (!metrics.length) throw new ProviderError('ioc', source.name, 'not_found')
+        return metrics
+    }))
+    signal.throwIfAborted()
 
-    const warnings: Array<{ source: string; message: string; reason?: ErrorType }> = []
-    const results: SourceResult[] = []
-    const errors: unknown[] = []
+    const warnings: SourceWarning[] = []
+    const results: SourceEvidence[] = []
+    const errors: ProviderError[] = []
 
     for (let i = 0; i < settled.length; i++) {
         const { name } = sources[i]
         const r = settled[i]
 
         if (r.status === 'fulfilled') {
-            results.push({ name, apiResponse: r.value })
+            results.push({ name, metrics: r.value })
         } else {
-            const errorType: ErrorType = r.reason instanceof ProviderError ? r.reason.errorType : 'unknown'
-            warnings.push({ source: name, message: warningMessageFor(name, r.reason), reason: errorType })
-            results.push({ name, apiResponse: null })
-            errors.push(r.reason)
+            const error = r.reason instanceof ProviderError ? r.reason : new ProviderError('ioc', name);
+            warnings.push({ source: name, message: warningMessageFor(name, error.errorType), reason: error.errorType })
+            errors.push(error)
         }
     }
 
-    // Si todas las fuentes fallaron por razón crítica (no solo not_found), propagar el primer error
-    if (errors.length === sources.length) {
-        const firstCritical = errors.find(
-            (e) => e instanceof ProviderError && e.errorType !== 'not_found'
-        )
-        if (firstCritical) {
-            throw firstCritical
-        }
-    }
-
-    return { results, warnings }
+    const error = results.length ? undefined : errors.find(({ errorType }) => errorType !== 'not_found');
+    return { results, warnings, error }
 }

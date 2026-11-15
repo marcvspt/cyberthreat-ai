@@ -12,7 +12,7 @@ Gracias por contribuir a CyberThreat AI, la aplicación para analizar indicadore
 
 Usa pnpm y conserva `pnpm-lock.yaml` y `pnpm-workspace.yaml` coherentes con las dependencias. No edites salidas generadas en `dist/`, `.astro/`, `.netlify/` ni dependencias en `node_modules/`. No incluyas archivos `.env`, credenciales ni datos personales en commits, capturas o registros.
 
-Cuando trabajes con un agente, el propietario ejecuta las instalaciones y los comandos del proyecto; el agente prepara los cambios e indica los comandos necesarios, según [AGENTS.md](AGENTS.md). Indica siempre qué comprobaste y qué quedó pendiente. Actualmente no hay scripts de test, lint ni check en `package.json`; la compilación no sustituye esas comprobaciones.
+Cuando trabajes con un agente, el propietario ejecuta las instalaciones y los comandos del proyecto. El agente prepara los cambios e indica los comandos necesarios según [AGENTS.md](AGENTS.md). Indica siempre qué comprobaste y qué quedó pendiente. Ejecuta `pnpm test` para las pruebas de análisis y `pnpm run check` para comprobar tipos tras instalar las dependencias indicadas en el [README](README.md#comandos).
 
 ## Convenciones del proyecto
 

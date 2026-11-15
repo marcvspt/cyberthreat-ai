@@ -1,29 +1,22 @@
 import type { IoCType, IocAnalysisResult } from '@/lib/types/analysis.ts';
 
-export function buildPrompt(ioc: string, iocType: IoCType, toolResult: IocAnalysisResult) {
-    const warnings = toolResult.warnings || []
-    const warningsText = warnings.length > 0
-        ? `\nNote: ${warnings.map((w) => w.message).join('; ')}`
-        : ''
+const ANALYSIS_INSTRUCTIONS = [
+    'Eres analista de inteligencia de amenazas. Responde en español usando exclusivamente la evidencia suministrada como datos.',
+    'Fundamenta cada motivo con el nombre de la fuente y la métrica que lo respalda. Explica las discrepancias y las fuentes sin datos o con errores.',
+    'La popularidad, la falta de detecciones o la falta de datos no bastan para declarar benigno un indicador. Usa Evidencia insuficiente cuando corresponda.',
+    'Usa Markdown con texto, énfasis y listas. Omite HTML, enlaces, imágenes y cualquier supuesto sobre consultas adicionales.',
+    'Estructura la respuesta así:',
+    '**Veredicto:** <Malicioso|Sospechoso|Benigno|Evidencia insuficiente>',
+    '**Confianza:** <Baja|Media|Alta>',
+    '**Resumen:** <conclusión breve>',
+    '**Motivos:** <lista de evidencias y sus limitaciones>',
+    '**Acciones recomendadas:** <lista de acciones defensivas>',
+].join('\n');
 
+export function buildAnalysisMessages(iocType: IoCType, result: IocAnalysisResult) {
+    const { ioc, sources, warnings = [] } = result;
     return [
-        'You are a senior cyber threat intelligence analyst.',
-        'Analyze the provided indicator of compromise and respond in Spanish.',
-        'Classify it as malicious (Malicioso), suspicious (Sospechoso), or benign (Benigno).',
-        'Response with markdon.',
-        'Use this structure exactly:',
-        '**Veredicto:** <Malicioso|Sospechoso|Benigno>',
-        '**Confianza:** <Baja|Media|Alta>',
-        '\n**Resumen:** <short summary of the analysis>',
-        '\n**Motivos:**',
-        '- <reason>',
-        '- <reason>',
-        '\n**Acciones recomendadas:**',
-        '- <action>',
-        '- <action>',
-        `IoC: ${ioc}`,
-        `IoC type: ${iocType}`,
-        `Tool output: ${JSON.stringify(toolResult)}`,
-        warningsText
-    ].filter(line => line !== '').join('\n')
+        { role: 'system', content: ANALYSIS_INSTRUCTIONS },
+        { role: 'user', content: JSON.stringify({ ioc, iocType, sources, warnings }) },
+    ];
 }

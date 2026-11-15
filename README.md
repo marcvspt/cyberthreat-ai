@@ -13,6 +13,7 @@ Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para preparar contribuciones, verifi
 - Consultar un IoC por análisis: IPv4, IPv6, dominio, MD5, SHA1 o SHA256.
 - Combinar información de VirusTotal, AbuseIPDB, Robtex y PolySwarm según el tipo de indicador.
 - Recibir la respuesta de IA en tiempo real mediante Server-Sent Events (SSE), con Markdown renderizado por Streamdown.
+- Revisar la evidencia de cada fuente y cancelar un análisis en curso desde el formulario.
 - Seleccionar un modelo y ver el modelo que OpenRouter ha utilizado realmente, cuando lo informa.
 - Configurar claves propias desde la interfaz, con fallback a las claves del servidor.
 - Consultar advertencias por fuente cuando una consulta falla o no encuentra datos.
@@ -77,9 +78,11 @@ La marca del encabezado utiliza `src/assets/logo.svg` (icono y nombre en un úni
 | `pnpm run dev` | Iniciar el servidor de desarrollo |
 | `pnpm run build` | Compilar con el adaptador configurado y generar el sitemap |
 | `pnpm run preview` | Ejecutar el comando de preview de Astro para la configuración actual |
+| `pnpm test` | Verificar normalización, errores, cancelación y SSE con respuestas simuladas |
+| `pnpm run check` | Comprobar tipos y diagnósticos de Astro y TypeScript |
 | `pnpm exec astro` | Acceder a la CLI de Astro |
 
-Actualmente no hay scripts de test, lint ni check configurados. La compilación no sustituye esas comprobaciones.
+Para preparar el chequeo de tipos por primera vez, instala sus dependencias con `pnpm add -D @astrojs/check typescript @types/node@24`. Las pruebas usan el runner de Node.js e interceptan las consultas a proveedores. La compilación y el chequeo de tipos son comprobaciones independientes.
 
 ## Configuración y persistencia
 
@@ -97,8 +100,9 @@ Las claves del servidor permanecen en variables de entorno. No incluyas valores 
 | --- | --- |
 | `openrouter/auto` | Modelo por defecto |
 | `openrouter/free` | Selección de modelos gratuitos de OpenRouter |
-| `poolside/laguna-xs-2.1:free` | Modelo seleccionable |
-| `inclusionai/ling-3.0-flash:free` | Modelo seleccionable |
+| `nvidia/nemotron-3-ultra-550b-a55b:free` | Modelo seleccionable |
+| `google/gemma-4-26b-a4b-it:free` | Modelo seleccionable |
+| `liquid/lfm-3-1.7b:free` | Modelo seleccionable |
 
 Si `model` no se envía o no está permitido, el servidor utiliza `openrouter/auto`. Esta tabla refleja la lista configurada en el proyecto, no una garantía de disponibilidad del proveedor.
 
@@ -115,7 +119,7 @@ La selección se guarda bajo `ctai:selected-model` y se recupera después del mo
 
 Ambos valores deben ser enteros positivos. El contador se consume antes de validar el IoC, por lo que las solicitudes inválidas también cuentan. El estado reside en memoria de cada proceso: se reinicia con el proceso y no se comparte entre instancias.
 
-La IP se obtiene, en este orden, de `cf-connecting-ip`, `x-forwarded-for` o `x-real-ip`; si ninguna está presente se usa `unknown`. La configuración del proxy debe proporcionar cabeceras fiables para que el límite represente a cada cliente.
+La IP se toma de `APIContext.clientAddress`, que el adaptador de Netlify configura con `context.ip`. Si el adaptador no entrega una IPv4 o IPv6 válida, las solicitudes sin dirección comparten el límite `unknown`. Antes de desplegar detrás de un proxy en otro runtime, comprueba que el adaptador reciba la IP real de una fuente de confianza. Si el servicio requiere un límite global entre varias instancias, el contador debe compartirse entre ellas.
 
 ## API
 
@@ -169,13 +173,13 @@ Una respuesta de análisis que inicia el stream usa `200` y `Content-Type: text/
 
 | Evento | Payload | Significado |
 | --- | --- | --- |
-| `meta` | `{ ioc, type, model, warnings? }` | Indicador, subtipo, modelo solicitado y advertencias |
+| `meta` | `{ ioc, type, model, sources, hasEvidence, warnings? }` | Indicador normalizado, subtipo, modelo solicitado y evidencia validada por fuente |
 | `model` | `{ model }` | Modelo real informado por OpenRouter |
 | `chunk` | `{ content }` | Fragmento de la respuesta de IA |
 | `done` | `{ done: true }` | Fin del análisis |
 | `error` | `{ error, stage, errorType? }` | Error después de iniciar el stream |
 
-Cada advertencia tiene `{ source, message, reason? }`. `stage` identifica la etapa (`ioc`, `ai` o `unknown`); `errorType`, cuando está presente, puede ser `invalid_api_key`, `model_error`, `api_unavailable`, `not_found` o `unknown`.
+Cada fuente tiene `{ name, metrics }`. Una métrica tiene `{ label, value }` con un valor numérico o booleano. Cada advertencia tiene `{ source, message, reason? }`. `stage` identifica la etapa (`ioc`, `ai` o `unknown`). `errorType`, cuando está presente, puede ser `invalid_api_key`, `model_error`, `api_unavailable`, `not_found` o `unknown`.
 
 Ejemplo de un evento:
 
@@ -185,9 +189,9 @@ data: {"content":"**Veredicto:** Sospechoso"}
 
 ```
 
-Las fuentes se consultan en paralelo. Cada consulta CTI dispone de 10 segundos, incluida la lectura del JSON. Si alguna devuelve datos, el análisis continúa y comunica las advertencias de las demás. La interfaz distingue entre ausencia de datos, claves no válidas y errores de consulta. Si todas fallan y hay un error crítico reconocido de proveedor, se devuelve un error antes de invocar OpenRouter. Si todas indican ausencia de datos, se emiten `meta` y `done` sin consultar la IA ni generar texto de análisis.
+Las fuentes se consultan en paralelo. Cada consulta CTI dispone de 10 segundos, incluida la lectura del JSON. Se validan y extraen las métricas que utiliza el análisis, como detecciones y reputación comunitaria de VirusTotal, confianza y reportes de AbuseIPDB, PolyScore y detecciones de PolySwarm, y posiciones de popularidad de Robtex cuando están disponibles. Si alguna fuente devuelve métricas, el análisis continúa con ellas y comunica las advertencias de las demás. OpenRouter recibe la evidencia normalizada y puede concluir «Evidencia insuficiente». Si ninguna fuente aporta métricas y alguna falla, la API devuelve un error JSON con `meta` para mostrar las advertencias. Si todas indican ausencia de datos, se emiten `meta` con `hasEvidence: false` y `done`, sin consultar OpenRouter.
 
-La conexión con OpenRouter dispone de 60 segundos desde que se inicia la consulta, incluida la generación. Si se corta antes de la señal de fin o se agota ese plazo durante el stream, se emite `error`. Si el navegador pierde la conexión antes de recibir `done` o `error`, la interfaz muestra un fallo de análisis. El servidor cancela la conexión con OpenRouter cuando el adaptador le comunica la desconexión o cancela el stream de salida.
+Cuando hay evidencia, el servidor emite `meta` al empezar la fase de IA. OpenRouter dispone de 60 segundos para conectar y generar la respuesta. Sus fallos de conexión, respuestas inválidas o cortes antes de `[DONE]` se comunican con `error`. La interfaz muestra el contenido visible de la IA como Markdown restringido a texto formateado. Los enlaces de las fuentes se cargan desde el catálogo de la aplicación. **Cancelar análisis** aborta la petición del navegador y conserva el indicador en el campo. El servidor propaga la cancelación a CTI y OpenRouter cuando el adaptador señala la desconexión. Si el adaptador cancela el stream de salida, también se aborta OpenRouter.
 
 ### Errores HTTP
 
@@ -198,7 +202,7 @@ Los errores anteriores al inicio del stream usan JSON. Un error durante el strea
 | `400` | Falta el indicador | `{ "error": "Falta el parámetro de IoC" }` |
 | `400` | Indicador no válido | `{ "error": "Tipo de IoC desconocido" }` |
 | `429` | Límite de solicitudes superado | `{ "error": "Demasiadas solicitudes", "retryAfterSeconds": 12 }` |
-| `500` | Error de proveedores o de IA antes del stream | `{ "error": "…", "stage": "ioc", "errorType": "api_unavailable" }` |
+| `500` | Error de fuentes o de configuración antes del stream | `{ "error": "…", "stage": "ioc", "errorType": "api_unavailable" }` |
 
 Las respuestas `429` incluyen `Retry-After`, `X-RateLimit-Limit` y `X-RateLimit-Window`. Los errores de IA pueden indicar clave inválida, servicio no disponible o un error de modelo comunicado durante el streaming.
 
@@ -225,7 +229,8 @@ Formulario React
 | Ruta | Responsabilidad |
 | --- | --- |
 | `src/components/` | Interfaz React y componentes Astro |
-| `src/lib/ui/` | Hooks de análisis, claves y modelo; cliente SSE y mensajes de estado |
+| `src/lib/ui/` | Hooks de análisis, claves y modelo y validación de metadatos del cliente |
+| `src/lib/sse.ts` | Lector SSE compartido entre el navegador y el servidor |
 | `src/layouts/BaseLayout.astro` | Layout, metadatos y canonical |
 | `src/pages/api/ctai.ts` | Endpoint de análisis y rate limit |
 | `src/pages/api/health.ts` | Endpoint de estado |
@@ -238,7 +243,7 @@ Formulario React
 | `src/lib/server/prompts/analysis.ts` | Prompt del veredicto, separado del copy de interfaz |
 | `src/lib/server/errors.ts` | Errores de proveedores y mensajes para el cliente |
 | `src/lib/server/analysis/` | Consultas por IP, dominio y hash |
-| `src/lib/server/providers/` | Integraciones CTI y guard compartido de peticiones |
+| `src/lib/server/providers/` | Consultas CTI, validación y normalización de métricas por proveedor |
 | `src/lib/validation/ioc.ts` | Validación de indicadores con Zod |
 | `src/lib/ui/ctai-client.ts` | Consumo SSE, cabeceras de claves y mensajes del cliente |
 | `src/lib/catalog/models.ts` | Lista de modelos, default y validación compartida |
@@ -296,9 +301,9 @@ El dominio se define únicamente en `site` de `astro.config.mjs`. Las canónicas
 
 ## Roadmap
 
-- [ ] Añadir tests para validadores, errores y streaming.
-- [ ] Validar y normalizar las respuestas de los proveedores externos.
-- [ ] Propagar la cancelación de la solicitud a las consultas CTI en curso.
+- [x] Añadir pruebas simuladas para normalización, errores, cancelación y streaming.
+- [x] Validar y normalizar las métricas de las fuentes externas.
+- [x] Propagar la señal de cancelación de la solicitud a las consultas CTI en curso.
 - [ ] Ampliar la documentación con ejemplos de respuesta de cada proveedor.
 - [ ] Analizar varios IoCs separados por comas, punto y coma o saltos de línea.
 - [ ] Importar lotes de indicadores desde CSV.

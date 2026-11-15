@@ -1,10 +1,10 @@
 import { TEXTS_GENERAL } from '@/lib/texts.ts';
 export default function IoCInputField() {
     return (
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
             <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-secondary/80">
-                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
-                    <path d="M10.5 18a7.5 7.5 0 1 1 5.303-2.197L21 21" stroke-linecap="round" stroke-linejoin="round" />
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
+                    <path d="M10.5 18a7.5 7.5 0 1 1 5.303-2.197L21 21" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             </div>
             <input
@@ -14,6 +14,9 @@ export default function IoCInputField() {
                 id="ioc-input"
                 name="ioc-input"
                 autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                required
             />
         </div>
     );

@@ -24,16 +24,16 @@ const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site).href;
 ---
 
 <!doctype html>
-<html lang={SITE_LOCALE.html} class="scroll-smooth">
+<html lang={SITE_LOCALE.html} class="motion-safe:scroll-smooth">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" type="image/svg+xml" sizes="any" href={faviconUrl} />
-        <meta name="color-scheme" content="light dark" />
+        <meta name="color-scheme" content="dark" />
         <meta name="description" content={description} />
         <link rel="canonical" href={canonicalURL} />
         <link rel="sitemap" href="/sitemap-index.xml" />
-        <title>{SITE_DATA.name} | {title}</title>
+        <title>{title} | {SITE_DATA.name}</title>
     </head>
     <body
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-background-dark text-white"
